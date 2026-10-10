@@ -243,6 +243,17 @@
     font-size: 14px;
     background: #16a34a;
   }
+
+  #avisoTabela {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    margin-bottom: 8px;
+    display: none;
+  }
+  #avisoTabela.ativo { display: block; }
 </style>
 </head>
 <body>
@@ -383,13 +394,14 @@
     <input type="number" id="ssTaxa" step="0.01" value="11">
 
     <p style="font-size:12px;color:#64748b;margin-top:12px">
-      A tabela do IRS 2026 está embutida no código e é escolhida automaticamente
-      conforme o teu rendimento bruto mensal.
+      A tabela do IRS é carregada do ficheiro <b>tabela-irs.json</b>.
+      Para atualizar, basta editar esse ficheiro — não é preciso mexer aqui.
     </p>
   </div>
 
   <div class="card">
-    <h2 style="margin-top:0">Tabela IRS 2026 (informativa)</h2>
+    <h2 style="margin-top:0">Tabela IRS (informativa)</h2>
+    <div id="avisoTabela"></div>
     <div id="tabelaInfo" style="font-size:12px"></div>
   </div>
 
@@ -414,10 +426,19 @@
   </div>
 </div>
 
-<!-- Botão de instalação PWA (aparece só quando o browser permite) -->
+<!-- Botão de instalação PWA -->
 <button id="btnInstalar" class="hide" onclick="instalarApp()">📲 Instalar app</button>
 
 <script>
+/* ============================================================
+   VARIÁVEIS GLOBAIS — a tabela IRS é carregada do JSON
+   ============================================================ */
+let TABELA_IRS = [];            // preenchida no arranque
+let VALOR_POR_DEPENDENTE = 21.43;
+let TAXA_TRIBUTAVEL_HORAS_EXTRA = 0.50;
+let TABELA_ANO = 0;
+let TABELA_CARREGADA = false;
+
 /* ============================================================
    FERIADOS NACIONAIS 2026
    ============================================================ */
@@ -429,9 +450,9 @@ const FERIADOS_NACIONAIS = [
 ];
 
 /* ============================================================
-   TABELA IRS 2026 — CONTINENTE (Tabela I)
+   TABELA FALLBACK (usada se o JSON não carregar)
    ============================================================ */
-const TABELA_IRS_2026 = [
+const TABELA_IRS_FALLBACK = [
   { limite: 920.00,   taxa: 0.0000, parcela: 0.00,  tipo: 'fixo'    },
   { limite: 1042.00,  taxa: 0.1250, parcela: 2.60,  tipo: 'formula', coef1: 0.1250, coef2: 2.60,  const: 1273.85 },
   { limite: 1108.00,  taxa: 0.1570, parcela: 1.35,  tipo: 'formula', coef1: 0.1570, coef2: 1.35,  const: 1554.83 },
@@ -445,9 +466,6 @@ const TABELA_IRS_2026 = [
   { limite: 20221.00, taxa: 0.4495, parcela: 823.40, tipo: 'fixo'   },
   { limite: Infinity, taxa: 0.4717, parcela: 1272.31, tipo: 'fixo'  }
 ];
-
-const VALOR_POR_DEPENDENTE = 21.43;
-const TAXA_TRIBUTAVEL_HORAS_EXTRA = 0.50;
 
 /* ============================================================
    PERSISTÊNCIA
@@ -472,6 +490,40 @@ let diasDesmarcados = JSON.parse(localStorage.getItem(LS.diasTrabalhados) || '[]
 let ferias = JSON.parse(localStorage.getItem(LS.ferias) || '[]');
 
 let dataEmEdicao = null;
+
+/* ============================================================
+   CARREGAR A TABELA IRS DO FICHEIRO JSON
+   ============================================================ */
+async function carregarTabelaIRS() {
+  try {
+    // cache-busting para garantir que apanha sempre a versão mais recente
+    const resp = await fetch('tabela-irs.json?v=' + Date.now(), { cache: 'no-store' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+    const dados = await resp.json();
+    if (!dados.escaloes || !Array.isArray(dados.escaloes) || !dados.escaloes.length) {
+      throw new Error('Formato inválido');
+    }
+
+    // Substituir "999999" por Infinity
+    TABELA_IRS = dados.escaloes.map(e => ({
+      ...e,
+      limite: (e.limite === 999999 || e.limite === null) ? Infinity : e.limite
+    }));
+
+    VALOR_POR_DEPENDENTE = dados.valorPorDependente ?? 21.43;
+    TAXA_TRIBUTAVEL_HORAS_EXTRA = dados.taxaTributavelHorasExtra ?? 0.50;
+    TABELA_ANO = dados.ano || '';
+    TABELA_CARREGADA = true;
+
+    console.log('Tabela IRS carregada do JSON:', TABELA_ANO, TABELA_IRS.length, 'escalões');
+  } catch (err) {
+    console.warn('Falha a carregar tabela-irs.json, usando fallback:', err.message);
+    TABELA_IRS = TABELA_IRS_FALLBACK.map(e => ({ ...e }));
+    TABELA_ANO = 2026;
+    TABELA_CARREGADA = false;
+  }
+}
 
 /* ============================================================
    DATAS
@@ -534,7 +586,11 @@ function classificarHoras(dataISO, horasTotal) {
 /* ============================================================
    INIT
    ============================================================ */
-window.onload = () => {
+window.onload = async () => {
+  // 1. Carregar tabela IRS do ficheiro
+  await carregarTabelaIRS();
+
+  // 2. Preencher campos
   const hoje = new Date();
   document.getElementById('mesAtual').value = hoje.toISOString().slice(0,7);
   document.getElementById('data').value = hoje.toISOString().slice(0,10);
@@ -742,8 +798,10 @@ function nomeMes(mesISO) {
    IRS
    ============================================================ */
 function calcularIRS(baseTributavel) {
-  let escalao = TABELA_IRS_2026[TABELA_IRS_2026.length - 1];
-  for (const e of TABELA_IRS_2026) {
+  if (!TABELA_IRS.length) return { irs: 0, escalao: null, parcelaAbater: 0, deducaoDep: 0, taxa: 0 };
+
+  let escalao = TABELA_IRS[TABELA_IRS.length - 1];
+  for (const e of TABELA_IRS) {
     if (baseTributavel <= e.limite) { escalao = e; break; }
   }
 
@@ -751,7 +809,9 @@ function calcularIRS(baseTributavel) {
   if (escalao.tipo === 'formula') {
     parcelaAbater = escalao.coef1 * escalao.coef2 * (escalao.const - baseTributavel);
     if (parcelaAbater < 0) parcelaAbater = 0;
-  } else parcelaAbater = escalao.parcela;
+  } else {
+    parcelaAbater = escalao.parcela;
+  }
 
   const irsBruto = (baseTributavel * escalao.taxa) - parcelaAbater;
   const deducaoDep = VALOR_POR_DEPENDENTE * conf.dependentes;
@@ -856,7 +916,9 @@ function renderMes() {
   const totalDescontos = irs + ss;
   const liquido = totalAbonos - totalDescontos;
 
-  const escalaTxt = `Escalão: ${(calcIRS.taxa*100).toFixed(2)}% · parcela ${calcIRS.parcelaAbater.toFixed(2)} € · IRS arredondado por defeito`;
+  const escalaTxt = calcIRS.escalao
+    ? `Escalão: ${(calcIRS.taxa*100).toFixed(2)}% · parcela ${calcIRS.parcelaAbater.toFixed(2)} € · tabela ${TABELA_ANO || '—'}`
+    : 'Tabela IRS não carregada';
 
   document.getElementById('recibo').innerHTML = `
     <div class="recibo">
@@ -942,10 +1004,24 @@ function renderHist() {
    TABELA INFORMATIVA
    ============================================================ */
 function renderTabelaInfo() {
+  const aviso = document.getElementById('avisoTabela');
   const div = document.getElementById('tabelaInfo');
-  let html = '<table style="width:100%;border-collapse:collapse;font-size:11.5px">';
+
+  if (!TABELA_CARREGADA) {
+    aviso.classList.add('ativo');
+    aviso.innerHTML = '⚠️ Não foi possível carregar <b>tabela-irs.json</b>. A usar valores por defeito de 2026.';
+  } else {
+    aviso.classList.remove('ativo');
+    aviso.innerHTML = '';
+  }
+
+  let html = '';
+  if (TABELA_ANO) {
+    html += `<p style="font-size:12px;color:#64748b;margin:0 0 8px"><b>Tabela carregada: ${TABELA_ANO}</b></p>`;
+  }
+  html += '<table style="width:100%;border-collapse:collapse;font-size:11.5px">';
   html += '<tr style="background:#f1f5f9"><th style="text-align:left;padding:4px">Até (€)</th><th style="text-align:right;padding:4px">Taxa</th><th style="text-align:right;padding:4px">Abater (€)</th></tr>';
-  TABELA_IRS_2026.forEach(e => {
+  TABELA_IRS.forEach(e => {
     const lim = e.limite === Infinity ? '∞' : e.limite.toFixed(2);
     const parc = e.tipo === 'formula'
       ? `${(e.taxa*100).toFixed(2)}% × ${e.coef2} × (${e.const} − R)`
@@ -959,7 +1035,7 @@ function renderTabelaInfo() {
   html += `<li>Horas em dia útil: 1ª hora a <b>25%</b>, restantes a <b>37,5%</b>.</li>`;
   html += `<li>Horas em fim de semana ou feriado: todas a <b>50%</b>.</li>`;
   html += `<li>Subsídio de alimentação: <b>não</b> pago em férias nem faltas.</li>`;
-  html += `<li>Horas extra: apenas <b>50%</b> entra para a base tributável.</li>`;
+  html += `<li>Horas extra: apenas <b>${(TAXA_TRIBUTAVEL_HORAS_EXTRA*100).toFixed(0)}%</b> entra para a base tributável.</li>`;
   html += `<li>IRS: arredondado sempre para baixo (euros inteiros).</li>`;
   html += `</ul>`;
   div.innerHTML = html;
