@@ -291,6 +291,19 @@
     letter-spacing: .5px;
     margin: 16px 0 6px;
   }
+  #ecraBoasVindas .calculado {
+    background: #ecfdf5;
+    border: 1px solid #16a34a;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 13px;
+    color: #166534;
+    margin-top: 6px;
+  }
+  #ecraBoasVindas .calculado b {
+    font-size: 16px;
+    color: #16a34a;
+  }
 </style>
 </head>
 <body>
@@ -308,10 +321,14 @@
     <div class="seccao">Remuneração</div>
 
     <label>Ordenado base mensal (€) <span class="obrigatorio">*</span></label>
-    <input type="number" id="bv_ordenadoBase" step="0.01" placeholder="Ex: 870.00" inputmode="decimal">
+    <input type="number" id="bv_ordenadoBase" step="0.01" placeholder="Ex: 870.00" inputmode="decimal" oninput="bv_mostrarValorHora()">
 
-    <label>Valor hora (€) <span class="obrigatorio">*</span></label>
-    <input type="number" id="bv_valorHora" step="0.01" placeholder="Ex: 5.02" inputmode="decimal">
+    <label>Horas semanais de trabalho <span class="obrigatorio">*</span></label>
+    <input type="number" id="bv_horasSemanais" step="0.5" value="40" inputmode="decimal" oninput="bv_mostrarValorHora()">
+
+    <div id="bv_valorHoraCalculado" class="calculado">
+      Valor hora calculado: <b id="bv_valorHoraTxt">0,00 €</b>
+    </div>
 
     <label>Subsídio de alimentação (€/dia) <span class="obrigatorio">*</span></label>
     <input type="number" id="bv_valorAli" step="0.01" placeholder="Ex: 6.00" inputmode="decimal">
@@ -437,10 +454,19 @@
       <h2 style="margin-top:0">Dados base</h2>
 
       <label>Ordenado base mensal (€)</label>
-      <input type="number" id="ordenadoBase" step="0.01">
+      <input type="number" id="ordenadoBase" step="0.01" oninput="conf_atualizarValorHora()">
+
+      <label>Horas semanais de trabalho</label>
+      <input type="number" id="horasSemanais" step="0.5" value="40" oninput="conf_atualizarValorHora()">
 
       <label>Valor hora (€)</label>
-      <input type="number" id="valorHoraConf" step="0.01">
+      <input type="number" id="valorHoraConf" step="0.01" oninput="conf_marcarValorHoraManual()">
+
+      <p style="font-size:11.5px;color:#64748b;margin:6px 0">
+        O valor hora é calculado automaticamente:<br>
+        <b>(Ordenado base × 12) ÷ (52 × Horas semanais)</b><br>
+        Se preferires, podes alterá-lo à mão.
+      </p>
 
       <label>Alimentação (€/dia)</label>
       <input type="number" id="valorAliConf" step="0.01">
@@ -525,6 +551,7 @@ let VALOR_POR_DEPENDENTE = 21.43;
 let TAXA_TRIBUTAVEL_HORAS_EXTRA = 0.50;
 let TABELA_ANO = 0;
 let TABELA_CARREGADA = false;
+let valorHoraManual = false; // se o utilizador alterou o valor hora à mão
 
 /* ============================================================
    FERIADOS NACIONAIS 2026
@@ -577,6 +604,8 @@ function carregarDadosLocais() {
     ordenadoBase: 0,
     valorHora: 0,
     valorAli: 0,
+    horasSemanais: 40,
+    valorHoraManual: false,
     diasUteis: 22,
     situacao: 'casado_2tit',
     dependentes: 0,
@@ -585,9 +614,20 @@ function carregarDadosLocais() {
     feriadoMunicipalNome: ''
   }, conf);
 
+  valorHoraManual = conf.valorHoraManual || false;
+
   dias = JSON.parse(localStorage.getItem(LS.dias) || '{}');
   diasDesmarcados = JSON.parse(localStorage.getItem(LS.diasTrabalhados) || '[]');
   ferias = JSON.parse(localStorage.getItem(LS.ferias) || '[]');
+}
+
+/* ============================================================
+   CÁLCULO DO VALOR HORA
+   Fórmula: (Ordenado base × 12) ÷ (52 × Horas semanais)
+   ============================================================ */
+function calcularValorHora(ordenadoBase, horasSemanais) {
+  if (!ordenadoBase || !horasSemanais) return 0;
+  return (ordenadoBase * 12) / (52 * horasSemanais);
 }
 
 /* ============================================================
@@ -679,16 +719,43 @@ function classificarHoras(dataISO, horasTotal) {
 }
 
 /* ============================================================
+   BOAS-VINDAS — cálculo em direto
+   ============================================================ */
+function bv_mostrarValorHora() {
+  const ordenadoBase = +document.getElementById('bv_ordenadoBase').value || 0;
+  const horasSemanais = +document.getElementById('bv_horasSemanais').value || 0;
+  const vh = calcularValorHora(ordenadoBase, horasSemanais);
+  document.getElementById('bv_valorHoraTxt').textContent = vh.toFixed(2).replace('.', ',') + ' €';
+}
+
+/* ============================================================
+   CONFIG — valor hora automático/manual
+   ============================================================ */
+function conf_atualizarValorHora() {
+  if (valorHoraManual) return; // se foi alterado à mão, não mexe
+  const ordenadoBase = +document.getElementById('ordenadoBase').value || 0;
+  const horasSemanais = +document.getElementById('horasSemanais').value || 0;
+  const vh = calcularValorHora(ordenadoBase, horasSemanais);
+  document.getElementById('valorHoraConf').value = vh.toFixed(2);
+}
+
+function conf_marcarValorHoraManual() {
+  valorHoraManual = true;
+  conf.valorHoraManual = true;
+}
+
+/* ============================================================
    ECRÃ DE BOAS-VINDAS
    ============================================================ */
 function mostrarBoasVindas() {
   document.getElementById('ecraBoasVindas').classList.remove('hide');
   document.getElementById('appPrincipal').classList.add('hide');
+  bv_mostrarValorHora();
 }
 
 function comecarApp() {
   const ordenadoBase = +document.getElementById('bv_ordenadoBase').value;
-  const valorHora    = +document.getElementById('bv_valorHora').value;
+  const horasSemanais = +document.getElementById('bv_horasSemanais').value;
   const valorAli     = +document.getElementById('bv_valorAli').value;
   const dependentes  = +document.getElementById('bv_dependentes').value || 0;
   const ssTaxa       = +document.getElementById('bv_ssTaxa').value;
@@ -696,17 +763,22 @@ function comecarApp() {
   const feriadoNome  = document.getElementById('bv_feriadoMunicipalNome').value.trim();
 
   if (!ordenadoBase || ordenadoBase <= 0) return alert('Preenche o ordenado base.');
-  if (!valorHora || valorHora <= 0) return alert('Preenche o valor hora.');
+  if (!horasSemanais || horasSemanais <= 0) return alert('Preenche as horas semanais.');
   if (valorAli === '' || valorAli < 0) return alert('Preenche o subsídio de alimentação.');
   if (!ssTaxa || ssTaxa <= 0) return alert('Preenche a taxa da Segurança Social.');
 
+  const valorHora = calcularValorHora(ordenadoBase, horasSemanais);
+
   conf.ordenadoBase = ordenadoBase;
-  conf.valorHora    = valorHora;
+  conf.horasSemanais = horasSemanais;
+  conf.valorHora    = +valorHora.toFixed(2);
   conf.valorAli     = valorAli;
   conf.dependentes  = dependentes;
   conf.ssTaxa       = ssTaxa;
   conf.feriadoMunicipalData = feriadoData;
   conf.feriadoMunicipalNome = feriadoNome;
+  conf.valorHoraManual = false;
+  valorHoraManual = false;
 
   salvarConf();
   localStorage.setItem(LS.configurado, 'true');
@@ -752,6 +824,7 @@ function preencherCamposApp() {
   document.getElementById('feriasAte').value = hoje.toISOString().slice(0,10);
 
   document.getElementById('ordenadoBase').value = conf.ordenadoBase;
+  document.getElementById('horasSemanais').value = conf.horasSemanais || 40;
   document.getElementById('valorHoraConf').value = conf.valorHora;
   document.getElementById('valorAliConf').value  = conf.valorAli;
   document.getElementById('diasUteis').value     = conf.diasUteis;
@@ -1191,6 +1264,7 @@ function renderTabelaInfo() {
    ============================================================ */
 function guardarConf() {
   conf.ordenadoBase = +document.getElementById('ordenadoBase').value;
+  conf.horasSemanais = +document.getElementById('horasSemanais').value;
   conf.valorHora    = +document.getElementById('valorHoraConf').value;
   conf.valorAli     = +document.getElementById('valorAliConf').value;
   conf.diasUteis    = +document.getElementById('diasUteis').value;
@@ -1199,6 +1273,7 @@ function guardarConf() {
   conf.ssTaxa       = +document.getElementById('ssTaxa').value;
   conf.feriadoMunicipalData = document.getElementById('feriadoMunicipalData').value;
   conf.feriadoMunicipalNome = document.getElementById('feriadoMunicipalNome').value;
+  conf.valorHoraManual = valorHoraManual;
   salvarConf();
 
   document.getElementById('valorHora').value = conf.valorHora;
@@ -1254,6 +1329,8 @@ function carregarBackup(event) {
       if (dados.diasDesmarcados) { diasDesmarcados = dados.diasDesmarcados; salvarDiasDesmarcados(); }
       if (dados.ferias) { ferias = dados.ferias; salvarFerias(); }
 
+      valorHoraManual = conf.valorHoraManual || false;
+
       localStorage.setItem(LS.configurado, 'true');
 
       document.getElementById('ecraBoasVindas').classList.add('hide');
@@ -1287,7 +1364,7 @@ function apagarTudo() {
 }
 
 /* ============================================================
-   PWA — SERVICE WORKER + INSTALAÇÃO
+   PWA
    ============================================================ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
