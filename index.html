@@ -254,186 +254,273 @@
     display: none;
   }
   #avisoTabela.ativo { display: block; }
+
+  /* ===== ECRÃ DE BOAS-VINDAS ===== */
+  #ecraBoasVindas {
+    position: fixed;
+    inset: 0;
+    background: #f1f5f9;
+    z-index: 999;
+    overflow-y: auto;
+    padding: 20px 16px 40px;
+  }
+  #ecraBoasVindas .topo {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  #ecraBoasVindas .topo h1 {
+    font-size: 24px;
+    color: #1e3a8a;
+    margin: 0 0 6px;
+  }
+  #ecraBoasVindas .topo p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+  }
+  #ecraBoasVindas .obrigatorio {
+    font-size: 11px;
+    color: #dc2626;
+    font-weight: 600;
+  }
+  #ecraBoasVindas .seccao {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e3a8a;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin: 16px 0 6px;
+  }
 </style>
 </head>
 <body>
 
-<h1>📅 Banco de Horas</h1>
+<!-- ============================================================
+     ECRÃ DE BOAS-VINDAS (aparece só na 1ª vez)
+     ============================================================ -->
+<div id="ecraBoasVindas" class="hide">
+  <div class="topo">
+    <h1>📅 Banco de Horas</h1>
+    <p>Antes de começar, preenche os teus dados.<br>Só precisas de fazer isto uma vez.</p>
+  </div>
 
-<div class="tabs">
-  <button id="tabMes" class="active" onclick="mudarTab('mes')">Mês</button>
-  <button id="tabHist" onclick="mudarTab('hist')">Histórico</button>
-  <button id="tabConf" onclick="mudarTab('conf')">Config</button>
+  <div class="card">
+    <div class="seccao">Remuneração</div>
+
+    <label>Ordenado base mensal (€) <span class="obrigatorio">*</span></label>
+    <input type="number" id="bv_ordenadoBase" step="0.01" placeholder="Ex: 870.00" inputmode="decimal">
+
+    <label>Valor hora (€) <span class="obrigatorio">*</span></label>
+    <input type="number" id="bv_valorHora" step="0.01" placeholder="Ex: 5.02" inputmode="decimal">
+
+    <label>Subsídio de alimentação (€/dia) <span class="obrigatorio">*</span></label>
+    <input type="number" id="bv_valorAli" step="0.01" placeholder="Ex: 6.00" inputmode="decimal">
+
+    <div class="seccao">Situação fiscal</div>
+
+    <label>Nº de dependentes <span class="obrigatorio">*</span></label>
+    <input type="number" id="bv_dependentes" step="1" value="0" inputmode="numeric">
+
+    <label>Segurança Social (%) <span class="obrigatorio">*</span></label>
+    <input type="number" id="bv_ssTaxa" step="0.01" value="11" inputmode="decimal">
+  </div>
+
+  <div class="card">
+    <div class="seccao">Feriado Municipal (opcional)</div>
+    <p style="font-size:12px;color:#64748b;margin:0 0 8px">
+      Se não souberes, deixa em branco. Podes preencher depois na Config.
+    </p>
+
+    <label>Data do feriado da tua cidade</label>
+    <input type="date" id="bv_feriadoMunicipalData">
+
+    <label>Nome do feriado</label>
+    <input type="text" id="bv_feriadoMunicipalNome" placeholder="Ex: São Pedro (Sintra)">
+  </div>
+
+  <button class="verde" onclick="comecarApp()">✅ Começar a usar</button>
 </div>
 
-<!-- ===== MÊS ATUAL ===== -->
-<div id="vistaMes">
-  <div class="card">
-    <label>Mês / Ano</label>
-    <input type="month" id="mesAtual">
-    <div class="row" style="margin-top:8px">
-      <div>
-        <label>Valor hora (€)</label>
-        <input type="number" id="valorHora" step="0.01" value="6.69">
+<!-- ===== APP NORMAL ===== -->
+<div id="appPrincipal" class="hide">
+
+  <h1>📅 Banco de Horas</h1>
+
+  <div class="tabs">
+    <button id="tabMes" class="active" onclick="mudarTab('mes')">Mês</button>
+    <button id="tabHist" onclick="mudarTab('hist')">Histórico</button>
+    <button id="tabConf" onclick="mudarTab('conf')">Config</button>
+  </div>
+
+  <!-- ===== MÊS ATUAL ===== -->
+  <div id="vistaMes">
+    <div class="card">
+      <label>Mês / Ano</label>
+      <input type="month" id="mesAtual">
+      <div class="row" style="margin-top:8px">
+        <div>
+          <label>Valor hora (€)</label>
+          <input type="number" id="valorHora" step="0.01">
+        </div>
+        <div>
+          <label>Alimentação (€/dia)</label>
+          <input type="number" id="valorAli" step="0.01">
+        </div>
       </div>
-      <div>
-        <label>Alimentação (€/dia)</label>
-        <input type="number" id="valorAli" step="0.01" value="6.00">
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Adicionar / Editar dia</h2>
+      <div id="avisoEdicao" class="aviso-edicao">✏️ A editar dia — clica em Cancelar para desistir</div>
+      <label>Data</label>
+      <input type="date" id="data" onchange="atualizarPreview()">
+
+      <label>Total de horas</label>
+      <input type="number" id="horasTotal" step="0.25" value="0" oninput="atualizarPreview()">
+
+      <div id="preview" class="preview"></div>
+
+      <button id="btnGuardar" onclick="guardarDia()">Guardar dia</button>
+      <button id="btnCancelarEdicao" class="sec hide" onclick="cancelarEdicao()">Cancelar edição</button>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Férias marcadas</h2>
+      <p style="font-size:12px;color:#64748b;margin:0 0 8px">
+        Durante as férias <b>não</b> recebes subsídio de alimentação (lei portuguesa).
+      </p>
+      <div class="row">
+        <div>
+          <label>De</label>
+          <input type="date" id="feriasDe">
+        </div>
+        <div>
+          <label>Até</label>
+          <input type="date" id="feriasAte">
+        </div>
       </div>
+      <button class="verde" onclick="adicionarFerias()">+ Adicionar férias</button>
+      <div id="listaFerias" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Dias úteis do mês</h2>
+      <p style="font-size:12px;color:#64748b;margin:0 0 8px">
+        Os dias de férias aparecem a roxo. Podes ainda desmarcar dias pontuais (faltas).
+      </p>
+      <div id="listaDiasUteis"></div>
+      <div id="resumoDias" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Horas extra lançadas</h2>
+      <div id="listaDias"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Recibo do mês</h2>
+      <div id="recibo"></div>
     </div>
   </div>
 
-  <div class="card">
-    <h2 style="margin-top:0">Adicionar / Editar dia</h2>
-    <div id="avisoEdicao" class="aviso-edicao">✏️ A editar dia — clica em Cancelar para desistir</div>
-    <label>Data</label>
-    <input type="date" id="data" onchange="atualizarPreview()">
-
-    <label>Total de horas</label>
-    <input type="number" id="horasTotal" step="0.25" value="0" oninput="atualizarPreview()">
-
-    <div id="preview" class="preview"></div>
-
-    <button id="btnGuardar" onclick="guardarDia()">Guardar dia</button>
-    <button id="btnCancelarEdicao" class="sec hide" onclick="cancelarEdicao()">Cancelar edição</button>
-  </div>
-
-  <div class="card">
-    <h2 style="margin-top:0">Férias marcadas</h2>
-    <p style="font-size:12px;color:#64748b;margin:0 0 8px">
-      Durante as férias <b>não</b> recebes subsídio de alimentação (lei portuguesa).
-    </p>
-    <div class="row">
-      <div>
-        <label>De</label>
-        <input type="date" id="feriasDe">
-      </div>
-      <div>
-        <label>Até</label>
-        <input type="date" id="feriasAte">
-      </div>
+  <!-- ===== HISTÓRICO ===== -->
+  <div id="vistaHist" class="hide">
+    <div class="card">
+      <h2 style="margin-top:0">Histórico</h2>
+      <div id="listaHist"></div>
     </div>
-    <button class="verde" onclick="adicionarFerias()">+ Adicionar férias</button>
-    <div id="listaFerias" style="margin-top:10px"></div>
   </div>
 
-  <div class="card">
-    <h2 style="margin-top:0">Dias úteis do mês</h2>
-    <p style="font-size:12px;color:#64748b;margin:0 0 8px">
-      Os dias de férias aparecem a roxo. Podes ainda desmarcar dias pontuais (faltas).
-    </p>
-    <div id="listaDiasUteis"></div>
-    <div id="resumoDias" style="margin-top:10px"></div>
+  <!-- ===== CONFIG ===== -->
+  <div id="vistaConf" class="hide">
+    <div class="card">
+      <h2 style="margin-top:0">Dados base</h2>
+
+      <label>Ordenado base mensal (€)</label>
+      <input type="number" id="ordenadoBase" step="0.01">
+
+      <label>Valor hora (€)</label>
+      <input type="number" id="valorHoraConf" step="0.01">
+
+      <label>Alimentação (€/dia)</label>
+      <input type="number" id="valorAliConf" step="0.01">
+
+      <label>Dias úteis do mês (informativo)</label>
+      <input type="number" id="diasUteis" step="1" value="22">
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Feriado Municipal</h2>
+      <p style="font-size:12px;color:#64748b;margin:0 0 8px">
+        Configura o feriado da tua cidade (ex.: Sintra = 29 junho).
+      </p>
+
+      <label>Data do Feriado Municipal</label>
+      <input type="date" id="feriadoMunicipalData">
+
+      <label>Nome do Feriado</label>
+      <input type="text" id="feriadoMunicipalNome" placeholder="Ex: São Pedro (Sintra)">
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Situação fiscal</h2>
+
+      <label>Situação</label>
+      <select id="situacao">
+        <option value="casado_2tit">Casado, 2 titulares (Tabela I)</option>
+      </select>
+      <p style="font-size:12px;color:#64748b;margin:6px 0">
+        Neste momento só está implementada a Tabela I (casado, 2 titulares).
+      </p>
+
+      <label>Nº de dependentes</label>
+      <input type="number" id="dependentes" step="1" value="0">
+
+      <label>Segurança Social (%)</label>
+      <input type="number" id="ssTaxa" step="0.01" value="11">
+
+      <p style="font-size:12px;color:#64748b;margin-top:12px">
+        A tabela do IRS é carregada do ficheiro <b>tabela-irs.json</b>.
+        Para atualizar, basta editar esse ficheiro — não é preciso mexer aqui.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Tabela IRS (informativa)</h2>
+      <div id="avisoTabela"></div>
+      <div id="tabelaInfo" style="font-size:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Backup / Restauro</h2>
+      <p style="font-size:12px;color:#64748b;margin:0 0 8px">
+        Guarda os teus dados num ficheiro ou recupera-os de um backup.
+      </p>
+
+      <button class="sec" onclick="fazerBackup()">💾 Descarregar backup (JSON)</button>
+
+      <label class="btn-file sec" style="margin-top:10px">
+        📂 Carregar backup (JSON)
+        <input type="file" accept=".json,application/json" onchange="carregarBackup(event)">
+      </label>
+
+      <button class="danger" onclick="apagarTudo()">Apagar todos os dados</button>
+    </div>
+
+    <div class="card">
+      <button onclick="guardarConf()">Guardar configurações</button>
+    </div>
   </div>
 
-  <div class="card">
-    <h2 style="margin-top:0">Horas extra lançadas</h2>
-    <div id="listaDias"></div>
-  </div>
-
-  <div class="card">
-    <h2 style="margin-top:0">Recibo do mês</h2>
-    <div id="recibo"></div>
-  </div>
+  <!-- Botão de instalação PWA -->
+  <button id="btnInstalar" class="hide" onclick="instalarApp()">📲 Instalar app</button>
 </div>
-
-<!-- ===== HISTÓRICO ===== -->
-<div id="vistaHist" class="hide">
-  <div class="card">
-    <h2 style="margin-top:0">Histórico</h2>
-    <div id="listaHist"></div>
-  </div>
-</div>
-
-<!-- ===== CONFIG ===== -->
-<div id="vistaConf" class="hide">
-  <div class="card">
-    <h2 style="margin-top:0">Dados base</h2>
-
-    <label>Ordenado base mensal (€)</label>
-    <input type="number" id="ordenadoBase" step="0.01" value="1160">
-
-    <label>Valor hora (€)</label>
-    <input type="number" id="valorHoraConf" step="0.01" value="6.69">
-
-    <label>Alimentação (€/dia)</label>
-    <input type="number" id="valorAliConf" step="0.01" value="6.00">
-
-    <label>Dias úteis do mês (informativo)</label>
-    <input type="number" id="diasUteis" step="1" value="22">
-  </div>
-
-  <div class="card">
-    <h2 style="margin-top:0">Feriado Municipal</h2>
-    <p style="font-size:12px;color:#64748b;margin:0 0 8px">
-      Configura o feriado da tua cidade (ex.: Sintra = 29 junho).
-    </p>
-
-    <label>Data do Feriado Municipal</label>
-    <input type="date" id="feriadoMunicipalData">
-
-    <label>Nome do Feriado</label>
-    <input type="text" id="feriadoMunicipalNome" placeholder="Ex: São Pedro (Sintra)">
-  </div>
-
-  <div class="card">
-    <h2 style="margin-top:0">Situação fiscal</h2>
-
-    <label>Situação</label>
-    <select id="situacao">
-      <option value="casado_2tit">Casado, 2 titulares (Tabela I)</option>
-    </select>
-    <p style="font-size:12px;color:#64748b;margin:6px 0">
-      Neste momento só está implementada a Tabela I (casado, 2 titulares).
-    </p>
-
-    <label>Nº de dependentes</label>
-    <input type="number" id="dependentes" step="1" value="2">
-
-    <label>Segurança Social (%)</label>
-    <input type="number" id="ssTaxa" step="0.01" value="11">
-
-    <p style="font-size:12px;color:#64748b;margin-top:12px">
-      A tabela do IRS é carregada do ficheiro <b>tabela-irs.json</b>.
-      Para atualizar, basta editar esse ficheiro — não é preciso mexer aqui.
-    </p>
-  </div>
-
-  <div class="card">
-    <h2 style="margin-top:0">Tabela IRS (informativa)</h2>
-    <div id="avisoTabela"></div>
-    <div id="tabelaInfo" style="font-size:12px"></div>
-  </div>
-
-  <div class="card">
-    <h2 style="margin-top:0">Backup / Restauro</h2>
-    <p style="font-size:12px;color:#64748b;margin:0 0 8px">
-      Guarda os teus dados num ficheiro ou recupera-os de um backup.
-    </p>
-
-    <button class="sec" onclick="fazerBackup()">💾 Descarregar backup (JSON)</button>
-
-    <label class="btn-file sec" style="margin-top:10px">
-      📂 Carregar backup (JSON)
-      <input type="file" accept=".json,application/json" onchange="carregarBackup(event)">
-    </label>
-
-    <button class="danger" onclick="apagarTudo()">Apagar todos os dados</button>
-  </div>
-
-  <div class="card">
-    <button onclick="guardarConf()">Guardar configurações</button>
-  </div>
-</div>
-
-<!-- Botão de instalação PWA -->
-<button id="btnInstalar" class="hide" onclick="instalarApp()">📲 Instalar app</button>
 
 <script>
 /* ============================================================
-   VARIÁVEIS GLOBAIS — a tabela IRS é carregada do JSON
+   VARIÁVEIS GLOBAIS
    ============================================================ */
-let TABELA_IRS = [];            // preenchida no arranque
+let TABELA_IRS = [];
 let VALOR_POR_DEPENDENTE = 21.43;
 let TAXA_TRIBUTAVEL_HORAS_EXTRA = 0.50;
 let TABELA_ANO = 0;
@@ -450,7 +537,7 @@ const FERIADOS_NACIONAIS = [
 ];
 
 /* ============================================================
-   TABELA FALLBACK (usada se o JSON não carregar)
+   TABELA FALLBACK
    ============================================================ */
 const TABELA_IRS_FALLBACK = [
   { limite: 920.00,   taxa: 0.0000, parcela: 0.00,  tipo: 'fixo'    },
@@ -470,33 +557,44 @@ const TABELA_IRS_FALLBACK = [
 /* ============================================================
    PERSISTÊNCIA
    ============================================================ */
-const LS = { dias: 'bh_dias', conf: 'bh_conf', diasTrabalhados: 'bh_dias_trab', ferias: 'bh_ferias' };
+const LS = {
+  dias: 'bh_dias',
+  conf: 'bh_conf',
+  diasTrabalhados: 'bh_dias_trab',
+  ferias: 'bh_ferias',
+  configurado: 'bh_configurado'
+};
 
-let conf = JSON.parse(localStorage.getItem(LS.conf) || '{}');
-conf = Object.assign({
-  ordenadoBase: 1160,
-  valorHora: 6.69,
-  valorAli: 6.00,
-  diasUteis: 22,
-  situacao: 'casado_2tit',
-  dependentes: 2,
-  ssTaxa: 11,
-  feriadoMunicipalData: '',
-  feriadoMunicipalNome: ''
-}, conf);
-
-let dias = JSON.parse(localStorage.getItem(LS.dias) || '{}');
-let diasDesmarcados = JSON.parse(localStorage.getItem(LS.diasTrabalhados) || '[]');
-let ferias = JSON.parse(localStorage.getItem(LS.ferias) || '[]');
-
+let conf = {};
+let dias = {};
+let diasDesmarcados = [];
+let ferias = [];
 let dataEmEdicao = null;
 
+function carregarDadosLocais() {
+  conf = JSON.parse(localStorage.getItem(LS.conf) || '{}');
+  conf = Object.assign({
+    ordenadoBase: 0,
+    valorHora: 0,
+    valorAli: 0,
+    diasUteis: 22,
+    situacao: 'casado_2tit',
+    dependentes: 0,
+    ssTaxa: 11,
+    feriadoMunicipalData: '',
+    feriadoMunicipalNome: ''
+  }, conf);
+
+  dias = JSON.parse(localStorage.getItem(LS.dias) || '{}');
+  diasDesmarcados = JSON.parse(localStorage.getItem(LS.diasTrabalhados) || '[]');
+  ferias = JSON.parse(localStorage.getItem(LS.ferias) || '[]');
+}
+
 /* ============================================================
-   CARREGAR A TABELA IRS DO FICHEIRO JSON
+   CARREGAR TABELA IRS
    ============================================================ */
 async function carregarTabelaIRS() {
   try {
-    // cache-busting para garantir que apanha sempre a versão mais recente
     const resp = await fetch('tabela-irs.json?v=' + Date.now(), { cache: 'no-store' });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
 
@@ -505,7 +603,6 @@ async function carregarTabelaIRS() {
       throw new Error('Formato inválido');
     }
 
-    // Substituir "999999" por Infinity
     TABELA_IRS = dados.escaloes.map(e => ({
       ...e,
       limite: (e.limite === 999999 || e.limite === null) ? Infinity : e.limite
@@ -515,10 +612,8 @@ async function carregarTabelaIRS() {
     TAXA_TRIBUTAVEL_HORAS_EXTRA = dados.taxaTributavelHorasExtra ?? 0.50;
     TABELA_ANO = dados.ano || '';
     TABELA_CARREGADA = true;
-
-    console.log('Tabela IRS carregada do JSON:', TABELA_ANO, TABELA_IRS.length, 'escalões');
   } catch (err) {
-    console.warn('Falha a carregar tabela-irs.json, usando fallback:', err.message);
+    console.warn('Falha tabela-irs.json, usando fallback:', err.message);
     TABELA_IRS = TABELA_IRS_FALLBACK.map(e => ({ ...e }));
     TABELA_ANO = 2026;
     TABELA_CARREGADA = false;
@@ -584,13 +679,72 @@ function classificarHoras(dataISO, horasTotal) {
 }
 
 /* ============================================================
+   ECRÃ DE BOAS-VINDAS
+   ============================================================ */
+function mostrarBoasVindas() {
+  document.getElementById('ecraBoasVindas').classList.remove('hide');
+  document.getElementById('appPrincipal').classList.add('hide');
+}
+
+function comecarApp() {
+  const ordenadoBase = +document.getElementById('bv_ordenadoBase').value;
+  const valorHora    = +document.getElementById('bv_valorHora').value;
+  const valorAli     = +document.getElementById('bv_valorAli').value;
+  const dependentes  = +document.getElementById('bv_dependentes').value || 0;
+  const ssTaxa       = +document.getElementById('bv_ssTaxa').value;
+  const feriadoData  = document.getElementById('bv_feriadoMunicipalData').value;
+  const feriadoNome  = document.getElementById('bv_feriadoMunicipalNome').value.trim();
+
+  if (!ordenadoBase || ordenadoBase <= 0) return alert('Preenche o ordenado base.');
+  if (!valorHora || valorHora <= 0) return alert('Preenche o valor hora.');
+  if (valorAli === '' || valorAli < 0) return alert('Preenche o subsídio de alimentação.');
+  if (!ssTaxa || ssTaxa <= 0) return alert('Preenche a taxa da Segurança Social.');
+
+  conf.ordenadoBase = ordenadoBase;
+  conf.valorHora    = valorHora;
+  conf.valorAli     = valorAli;
+  conf.dependentes  = dependentes;
+  conf.ssTaxa       = ssTaxa;
+  conf.feriadoMunicipalData = feriadoData;
+  conf.feriadoMunicipalNome = feriadoNome;
+
+  salvarConf();
+  localStorage.setItem(LS.configurado, 'true');
+
+  document.getElementById('ecraBoasVindas').classList.add('hide');
+  document.getElementById('appPrincipal').classList.remove('hide');
+
+  preencherCamposApp();
+  renderTabelaInfo();
+  atualizarPreview();
+  renderFerias();
+  renderMes();
+  renderHist();
+}
+
+/* ============================================================
    INIT
    ============================================================ */
 window.onload = async () => {
-  // 1. Carregar tabela IRS do ficheiro
   await carregarTabelaIRS();
+  carregarDadosLocais();
 
-  // 2. Preencher campos
+  const jaConfigurado = localStorage.getItem(LS.configurado) === 'true';
+
+  if (!jaConfigurado) {
+    mostrarBoasVindas();
+  } else {
+    document.getElementById('appPrincipal').classList.remove('hide');
+    preencherCamposApp();
+    renderTabelaInfo();
+    atualizarPreview();
+    renderFerias();
+    renderMes();
+    renderHist();
+  }
+};
+
+function preencherCamposApp() {
   const hoje = new Date();
   document.getElementById('mesAtual').value = hoje.toISOString().slice(0,7);
   document.getElementById('data').value = hoje.toISOString().slice(0,10);
@@ -613,13 +767,7 @@ window.onload = async () => {
   document.getElementById('mesAtual').onchange = renderMes;
   document.getElementById('valorHora').onchange = e => { conf.valorHora = +e.target.value; salvarConf(); renderMes(); };
   document.getElementById('valorAli').onchange  = e => { conf.valorAli  = +e.target.value; salvarConf(); renderMes(); };
-
-  renderTabelaInfo();
-  atualizarPreview();
-  renderFerias();
-  renderMes();
-  renderHist();
-};
+}
 
 /* ============================================================
    TABS
@@ -836,7 +984,6 @@ function renderMes() {
   const vh = conf.valorHora;
   const va = conf.valorAli;
 
-  // Dias úteis
   const uteis = diasUteisDoMes(mes);
   const listaUteis = document.getElementById('listaDiasUteis');
   listaUteis.innerHTML = '';
@@ -866,7 +1013,6 @@ function renderMes() {
     <div class="resumo-dias"><span>Férias / faltas</span><b>${uteis.length - trabalhados}</b></div>
   `;
 
-  // Horas extra
   const doMes = Object.entries(dias).filter(([d]) => d.startsWith(mes)).sort();
   let t25 = 0, t375 = 0, t50 = 0, totalHoras = 0;
 
@@ -897,7 +1043,6 @@ function renderMes() {
     lista.appendChild(dia);
   });
 
-  // Cálculos
   const base = conf.ordenadoBase;
   const euros25  = t25  * vh * 1.25;
   const euros375 = t375 * vh * 1.375;
@@ -1109,18 +1254,12 @@ function carregarBackup(event) {
       if (dados.diasDesmarcados) { diasDesmarcados = dados.diasDesmarcados; salvarDiasDesmarcados(); }
       if (dados.ferias) { ferias = dados.ferias; salvarFerias(); }
 
-      document.getElementById('ordenadoBase').value = conf.ordenadoBase;
-      document.getElementById('valorHoraConf').value = conf.valorHora;
-      document.getElementById('valorAliConf').value  = conf.valorAli;
-      document.getElementById('diasUteis').value     = conf.diasUteis;
-      document.getElementById('situacao').value      = conf.situacao;
-      document.getElementById('dependentes').value   = conf.dependentes;
-      document.getElementById('ssTaxa').value        = conf.ssTaxa;
-      document.getElementById('feriadoMunicipalData').value = conf.feriadoMunicipalData || '';
-      document.getElementById('feriadoMunicipalNome').value = conf.feriadoMunicipalNome || '';
-      document.getElementById('valorHora').value     = conf.valorHora;
-      document.getElementById('valorAli').value      = conf.valorAli;
+      localStorage.setItem(LS.configurado, 'true');
 
+      document.getElementById('ecraBoasVindas').classList.add('hide');
+      document.getElementById('appPrincipal').classList.remove('hide');
+
+      preencherCamposApp();
       renderFerias();
       renderMes();
       renderHist();
@@ -1140,13 +1279,11 @@ function apagarTudo() {
   localStorage.removeItem(LS.dias);
   localStorage.removeItem(LS.diasTrabalhados);
   localStorage.removeItem(LS.ferias);
-  dias = {};
-  diasDesmarcados = [];
-  ferias = [];
-  cancelarEdicao();
-  renderFerias();
-  renderMes();
-  renderHist();
+  localStorage.removeItem(LS.conf);
+  localStorage.removeItem(LS.configurado);
+
+  alert('Dados apagados. A app vai recomeçar.');
+  location.reload();
 }
 
 /* ============================================================
@@ -1164,7 +1301,8 @@ let promptInstalar = null;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   promptInstalar = e;
-  document.getElementById('btnInstalar').classList.remove('hide');
+  const btn = document.getElementById('btnInstalar');
+  if (btn) btn.classList.remove('hide');
 });
 
 function instalarApp() {
@@ -1179,7 +1317,8 @@ function instalarApp() {
 }
 
 window.addEventListener('appinstalled', () => {
-  document.getElementById('btnInstalar').classList.add('hide');
+  const btn = document.getElementById('btnInstalar');
+  if (btn) btn.classList.add('hide');
 });
 </script>
 </body>
