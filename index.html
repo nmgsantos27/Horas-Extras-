@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1e3a8a">
+<title>Banco de Horas</title>
+
+<!-- ===== PWA ===== -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Banco Horas">
+
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, system-ui, sans-serif;
+    margin: 0; padding: 12px;
+    background: #f1f5f9; color: #1e293b;
+  }
+  h1 { font-size: 20px; margin: 8px 0; }
+  h2 { font-size: 16px; margin: 16px 0 8px; color: #1e3a8a; }
+  .card {
+    background: #fff; border-radius: 12px;
+    padding: 14px; margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+  label { display: block; font-size: 13px; margin: 8px 0 4px; color: #475569; }
+  input, select {
+    width: 100%; padding: 10px; font-size: 16px;
+    border: 1px solid #cbd5e1; border-radius: 8px;
+    background: #fff;
+  }
+  button {
+    width: 100%; padding: 12px; font-size: 16px;
+    border: none; border-radius: 8px;
+    background: #1e3a8a; color: #fff; font-weight: 600;
+    margin-top: 10px;
+  }
+  button.sec { background: #64748b; }
+  button.danger { background: #dc2626; }
+  button.aviso { background: #d97706; }
+  button.verde { background: #16a34a; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+  .dia {
+    display: flex; justify-content: space-between;
+    align-items: center;
+    padding: 8px 0; border-bottom: 1px solid #e2e8f0;
+    font-size: 14px;
+    gap: 8px;
+  }
+  .dia:last-child { border-bottom: none; }
+  .dia .info { flex: 1; }
+  .dia .botoes { display: flex; gap: 4px; flex-shrink: 0; }
+  .dia .botoes button {
+    width: auto; padding: 4px 8px; margin: 0;
+    font-size: 12px; border-radius: 6px;
+  }
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tabs button {
+    margin: 0; background: #e2e8f0; color: #1e293b;
+    font-weight: 500; padding: 10px;
+  }
+  .tabs button.active { background: #1e3a8a; color: #fff; }
+  .hide { display: none; }
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 8px 0; }
+
+  .recibo {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 14px;
+  }
+  .recibo h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    text-align: center;
+    color: #1e3a8a;
+  }
+  .recibo .subtitulo {
+    text-align: center;
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 12px;
+  }
+  .recibo .secao {
+    font-weight: 700;
+    font-size: 13px;
+    color: #1e3a8a;
+    margin: 12px 0 6px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .linha {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 13.5px;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .linha:last-child { border-bottom: none; }
+  .linha.desc span:last-child { color: #dc2626; }
+  .linha.total {
+    font-weight: 700;
+    color: #1e3a8a;
+    border-top: 1px solid #1e3a8a;
+    border-bottom: none;
+    margin-top: 6px;
+    padding-top: 8px;
+    font-size: 14.5px;
+  }
+  .linha.liquido {
+    font-weight: 800;
+    font-size: 16px;
+    background: #1e3a8a;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 12px;
+    border: none;
+  }
+  .info-extra {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #64748b;
+    text-align: center;
+  }
+  .info-escalao {
+    margin-top: 8px;
+    font-size: 11.5px;
+    color: #64748b;
+    text-align: center;
+    font-style: italic;
+  }
+
+  .dia-util {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 14px;
+  }
+  .dia-util:last-child { border-bottom: none; }
+  .dia-util input[type="checkbox"] {
+    width: 20px; height: 20px;
+    accent-color: #1e3a8a;
+    flex-shrink: 0;
+  }
+  .dia-util .data { flex: 1; }
+  .dia-util .feriado {
+    font-size: 11px;
+    background: #fef3c7;
+    color: #92400e;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .dia-util.desmarcado .data { color: #94a3b8; text-decoration: line-through; }
+  .dia-util.ferias .data { color: #7c3aed; text-decoration: line-through; }
+  .dia-util.ferias .tag {
+    font-size: 10px;
+    background: #7c3aed;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .resumo-dias {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .resumo-dias:last-child { border-bottom: none; }
+  .resumo-dias b { color: #1e3a8a; }
+
+  .preview {
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 13px;
+    margin-top: 8px;
+    color: #475569;
+  }
+  .preview b { color: #1e3a8a; }
+
+  .aviso-edicao {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 8px;
+    display: none;
+    font-weight: 600;
+  }
+  .aviso-edicao.ativo { display: block; }
+
+  .btn-file {
+    display: block; width: 100%;
+    padding: 12px; font-size: 16px;
+    border: none; border-radius: 8px;
+    background: #1e3a8a; color: #fff; font-weight: 600;
+    margin-top: 10px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .btn-file.sec { background: #64748b; }
+  .btn-file input { display: none; }
+
+  .periodo-ferias {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 13px;
+    gap: 8px;
+  }
+  .periodo-ferias:last-child { border-bottom: none; }
+  .periodo-ferias .info { flex: 1; }
+  .periodo-ferias button {
+    width: auto; padding: 4px 8px; margin: 0;
+    font-size: 12px; border-radius: 6px;
+  }
+
+  #btnInstalar {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    width: auto;
+    padding: 12px 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    z-index: 100;
+    border-radius: 50px;
+    font-size: 14px;
+    background: #16a34a;
+  }
+</style>
+</head>
+<body>
+
+<h1>📅 Banco de Horas</h1>
+
+<div class="tabs">
+  <button id="tabMes" class="active" onclick="mudarTab('mes')">Mês</button>
+  <button id="tabHist" onclick="mudarTab('hist')">Histórico</button>
+  <button id="tabConf" onclick="mudarTab('conf')">Config</button>
+</div>
+
+<!-- ===== MÊS ATUAL ===== -->
+<div id="vistaMes">
+  <div class="card">
+    <label>Mês / Ano</label>
+    <input type="month" id="mesAtual">
+    <div class="row" style="margin-top:8px">
+      <div>
+        <label>Valor hora (€)</label>
+        <input type="number" id="valorHora" step="0.01" value="6.69">
+      </div>
+      <div>
+        <label>Alimentação (€/dia)</label>
+        <input type="number" id="valorAli" step="0.01" value="6.00">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Adicionar / Editar dia</h2>
+    <div id="avisoEdicao" class="aviso-edicao">✏️ A editar dia — clica em Cancelar para desistir</div>
+    <label>Data</label>
+    <input type="date" id="data" onchange="atualizarPreview()">
+
+    <label>Total de horas</label>
+    <input type="number" id="horasTotal" step="0.25" value="0" oninput="atualizarPreview()">
+
+    <div id="preview" class="preview"></div>
+
+    <button id="btnGuardar" onclick="guardarDia()">Guardar dia</button>
+    <button id="btnCancelarEdicao" class="sec hide" onclick="cancelarEdicao()">Cancelar edição</button>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Férias marcadas</h2>
+    <p style="font-size:12px;color:#64748b;margin:0 0 8px">
+      Durante as férias <b>não</b> recebes subsídio de alimentação (lei portuguesa).
+    </p>
+    <div class="row">
+      <div>
+        <label>De</label>
+        <input type="date" id="feriasDe">
+      </div>
+      <div>
+        <label>Até</label>
+        <input type="date" id="feriasAte">
+      </div>
+    </div>
+    <button class="verde" onclick="adicionarFerias()">+ Adicionar férias</button>
+    <div id="listaFerias" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Dias úteis do mês</h2>
+    <p style="font-size:12px;color:#64748b;margin:0 0 8px">
+      Os dias de férias aparecem a roxo. Podes ainda desmarcar dias pontuais (faltas).
+    </p>
+    <div id="listaDiasUteis"></div>
+    <div id="resumoDias" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Horas extra lançadas</h2>
+    <div id="listaDias"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Recibo do mês</h2>
+    <div id="recibo"></div>
+  </div>
+</div>
+
+<!-- ===== HISTÓRICO ===== -->
+<div id="vistaHist" class="hide">
+  <div class="card">
+    <h2 style="margin-top:0">Histórico</h2>
+    <div id="listaHist"></div>
+  </div>
+</div>
+
+<!-- ===== CONFIG ===== -->
+<div id="vistaConf" class="hide">
+  <div class="card">
+    <h2 style="margin-top:0">Dados base</h2>
+
+    <label>Ordenado base mensal (€)</label>
+    <input type="number" id="ordenadoBase" step="0.01" value="1160">
+
+    <label>Valor hora (€)</label>
+    <input type="number" id="valorHoraConf" step="0.01" value="6.69">
+
+    <label>Alimentação (€/dia)</label>
+    <input type="number" id="valorAliConf" step="0.01" value="6.00">
+
+    <label>Dias úteis do mês (informativo)</label>
+    <input type="number" id="diasUteis" step="1" value="22">
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Feriado Municipal</h2>
+    <p style="font-size:12px;color:#64748b;margin:0 0 8px">
+      Configura o feriado da tua cidade (ex.: Sintra = 29 junho).
+    </p>
+
+    <label>Data do Feriado Municipal</label>
+    <input type="date" id="feriadoMunicipalData">
+
+    <label>Nome do Feriado</label>
+    <input type="text" id="feriadoMunicipalNome" placeholder="Ex: São Pedro (Sintra)">
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Situação fiscal</h2>
+
+    <label>Situação</label>
+    <select id="situacao">
+      <option value="casado_2tit">Casado, 2 titulares (Tabela I)</option>
+    </select>
+    <p style="font-size:12px;color:#64748b;margin:6px 0">
+      Neste momento só está implementada a Tabela I (casado, 2 titulares).
+    </p>
+
+    <label>Nº de dependentes</label>
+    <input type="number" id="dependentes" step="1" value="2">
+
+    <label>Segurança Social (%)</label>
+    <input type="number" id="ssTaxa" step="0.01" value="11">
+
+    <p style="font-size:12px;color:#64748b;margin-top:12px">
+      A tabela do IRS 2026 está embutida no código e é escolhida automaticamente
+      conforme o teu rendimento bruto mensal.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Tabela IRS 2026 (informativa)</h2>
+    <div id="tabelaInfo" style="font-size:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Backup / Restauro</h2>
+    <p style="font-size:12px;color:#64748b;margin:0 0 8px">
+      Guarda os teus dados num ficheiro ou recupera-os de um backup.
+    </p>
+
+    <button class="sec" onclick="fazerBackup()">💾 Descarregar backup (JSON)</button>
+
+    <label class="btn-file sec" style="margin-top:10px">
+      📂 Carregar backup (JSON)
+      <input type="file" accept=".json,application/json" onchange="carregarBackup(event)">
+    </label>
+
+    <button class="danger" onclick="apagarTudo()">Apagar todos os dados</button>
+  </div>
+
+  <div class="card">
+    <button onclick="guardarConf()">Guardar configurações</button>
+  </div>
+</div>
+
+<!-- Botão de instalação PWA (aparece só quando o browser permite) -->
+<button id="btnInstalar" class="hide" onclick="instalarApp()">📲 Instalar app</button>
+
+<script>
+/* ============================================================
+   FERIADOS NACIONAIS 2026
+   ============================================================ */
+const FERIADOS_NACIONAIS = [
+  '2026-01-01', '2026-04-03', '2026-04-05', '2026-04-25',
+  '2026-05-01', '2026-06-04', '2026-06-10', '2026-08-15',
+  '2026-10-05', '2026-11-01', '2026-12-01', '2026-12-08',
+  '2026-12-25'
+];
+
+/* ============================================================
+   TABELA IRS 2026 — CONTINENTE (Tabela I)
+   ============================================================ */
+const TABELA_IRS_2026 = [
+  { limite: 920.00,   taxa: 0.0000, parcela: 0.00,  tipo: 'fixo'    },
+  { limite: 1042.00,  taxa: 0.1250, parcela: 2.60,  tipo: 'formula', coef1: 0.1250, coef2: 2.60,  const: 1273.85 },
+  { limite: 1108.00,  taxa: 0.1570, parcela: 1.35,  tipo: 'formula', coef1: 0.1570, coef2: 1.35,  const: 1554.83 },
+  { limite: 1154.00,  taxa: 0.1570, parcela: 94.71, tipo: 'fixo'    },
+  { limite: 1212.00,  taxa: 0.2120, parcela: 158.18, tipo: 'fixo'   },
+  { limite: 1819.00,  taxa: 0.2410, parcela: 193.33, tipo: 'fixo'   },
+  { limite: 2119.00,  taxa: 0.3110, parcela: 320.66, tipo: 'fixo'   },
+  { limite: 2499.00,  taxa: 0.3490, parcela: 401.19, tipo: 'fixo'   },
+  { limite: 3305.00,  taxa: 0.3836, parcela: 487.66, tipo: 'fixo'   },
+  { limite: 5547.00,  taxa: 0.3969, parcela: 531.62, tipo: 'fixo'   },
+  { limite: 20221.00, taxa: 0.4495, parcela: 823.40, tipo: 'fixo'   },
+  { limite: Infinity, taxa: 0.4717, parcela: 1272.31, tipo: 'fixo'  }
+];
+
+const VALOR_POR_DEPENDENTE = 21.43;
+const TAXA_TRIBUTAVEL_HORAS_EXTRA = 0.50;
+
+/* ============================================================
+   PERSISTÊNCIA
+   ============================================================ */
+const LS = { dias: 'bh_dias', conf: 'bh_conf', diasTrabalhados: 'bh_dias_trab', ferias: 'bh_ferias' };
+
+let conf = JSON.parse(localStorage.getItem(LS.conf) || '{}');
+conf = Object.assign({
+  ordenadoBase: 1160,
+  valorHora: 6.69,
+  valorAli: 6.00,
+  diasUteis: 22,
+  situacao: 'casado_2tit',
+  dependentes: 2,
+  ssTaxa: 11,
+  feriadoMunicipalData: '',
+  feriadoMunicipalNome: ''
+}, conf);
+
+let dias = JSON.parse(localStorage.getItem(LS.dias) || '{}');
+let diasDesmarcados = JSON.parse(localStorage.getItem(LS.diasTrabalhados) || '[]');
+let ferias = JSON.parse(localStorage.getItem(LS.ferias) || '[]');
+
+let dataEmEdicao = null;
+
+/* ============================================================
+   DATAS
+   ============================================================ */
+function formatarData(d) {
+  const a = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${a}-${m}-${dd}`;
+}
+function ehFimDeSemana(d) { const dow = d.getDay(); return dow === 0 || dow === 6; }
+
+function ehFeriado(dataISO) {
+  if (FERIADOS_NACIONAIS.includes(dataISO)) return true;
+  if (conf.feriadoMunicipalData && dataISO === conf.feriadoMunicipalData) return true;
+  return false;
+}
+
+function feriadoNome(dataISO) {
+  const nomes = {
+    '2026-01-01': 'Ano Novo', '2026-04-03': 'Sexta-feira Santa',
+    '2026-04-05': 'Páscoa', '2026-04-25': 'Dia da Liberdade',
+    '2026-05-01': 'Dia do Trabalhador', '2026-06-04': 'Corpo de Deus',
+    '2026-06-10': 'Dia de Portugal', '2026-08-15': 'Assunção',
+    '2026-10-05': 'Implantação da República', '2026-11-01': 'Todos os Santos',
+    '2026-12-01': 'Restauração', '2026-12-08': 'Imaculada Conceição',
+    '2026-12-25': 'Natal'
+  };
+  if (dataISO === conf.feriadoMunicipalData) return conf.feriadoMunicipalNome || 'Feriado Municipal';
+  return nomes[dataISO] || 'Feriado';
+}
+
+function ehDiaFerias(dataISO) {
+  return ferias.some(f => dataISO >= f.de && dataISO <= f.ate);
+}
+
+function diasUteisDoMes(mesISO) {
+  const [ano, mes] = mesISO.split('-').map(Number);
+  const dias = [];
+  const d = new Date(ano, mes - 1, 1);
+  while (d.getMonth() === mes - 1) {
+    const iso = formatarData(d);
+    if (!ehFimDeSemana(d) && !ehFeriado(iso)) dias.push(iso);
+    d.setDate(d.getDate() + 1);
+  }
+  return dias;
+}
+
+/* ============================================================
+   CLASSIFICAÇÃO AUTOMÁTICA
+   ============================================================ */
+function classificarHoras(dataISO, horasTotal) {
+  if (!dataISO || horasTotal <= 0) return { h25: 0, h375: 0, h50: 0, tipo: 'nenhum' };
+  const d = new Date(dataISO + 'T00:00:00');
+  if (ehFimDeSemana(d) || ehFeriado(dataISO)) return { h25: 0, h375: 0, h50: horasTotal, tipo: '50' };
+  if (horasTotal <= 1) return { h25: horasTotal, h375: 0, h50: 0, tipo: '25' };
+  return { h25: 1, h375: horasTotal - 1, h50: 0, tipo: '25+375' };
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+window.onload = () => {
+  const hoje = new Date();
+  document.getElementById('mesAtual').value = hoje.toISOString().slice(0,7);
+  document.getElementById('data').value = hoje.toISOString().slice(0,10);
+  document.getElementById('feriasDe').value = hoje.toISOString().slice(0,10);
+  document.getElementById('feriasAte').value = hoje.toISOString().slice(0,10);
+
+  document.getElementById('ordenadoBase').value = conf.ordenadoBase;
+  document.getElementById('valorHoraConf').value = conf.valorHora;
+  document.getElementById('valorAliConf').value  = conf.valorAli;
+  document.getElementById('diasUteis').value     = conf.diasUteis;
+  document.getElementById('situacao').value      = conf.situacao;
+  document.getElementById('dependentes').value   = conf.dependentes;
+  document.getElementById('ssTaxa').value        = conf.ssTaxa;
+  document.getElementById('feriadoMunicipalData').value = conf.feriadoMunicipalData;
+  document.getElementById('feriadoMunicipalNome').value = conf.feriadoMunicipalNome;
+
+  document.getElementById('valorHora').value = conf.valorHora;
+  document.getElementById('valorAli').value  = conf.valorAli;
+
+  document.getElementById('mesAtual').onchange = renderMes;
+  document.getElementById('valorHora').onchange = e => { conf.valorHora = +e.target.value; salvarConf(); renderMes(); };
+  document.getElementById('valorAli').onchange  = e => { conf.valorAli  = +e.target.value; salvarConf(); renderMes(); };
+
+  renderTabelaInfo();
+  atualizarPreview();
+  renderFerias();
+  renderMes();
+  renderHist();
+};
+
+/* ============================================================
+   TABS
+   ============================================================ */
+function mudarTab(t) {
+  ['mes','hist','conf'].forEach(x => {
+    document.getElementById('vista' + x.charAt(0).toUpperCase() + x.slice(1))
+      .classList.toggle('hide', x !== t);
+    document.getElementById('tab' + x.charAt(0).toUpperCase() + x.slice(1))
+      .classList.toggle('active', x === t);
+  });
+  if (t === 'hist') renderHist();
+}
+
+/* ============================================================
+   PREVIEW
+   ============================================================ */
+function atualizarPreview() {
+  const dataISO = document.getElementById('data').value;
+  const horas = +document.getElementById('horasTotal').value || 0;
+  const div = document.getElementById('preview');
+
+  if (!dataISO) { div.innerHTML = 'Escolhe uma data para ver a classificação automática.'; return; }
+
+  const d = new Date(dataISO + 'T00:00:00');
+  const nomeDia = d.toLocaleDateString('pt-PT', { weekday: 'long' });
+  const dataFmt = d.toLocaleDateString('pt-PT');
+  const feriado = ehFeriado(dataISO);
+  const fimSemana = ehFimDeSemana(d);
+
+  if (horas <= 0) {
+    div.innerHTML = `<b>${dataFmt}</b> (${nomeDia})${feriado ? ' — <b>' + feriadoNome(dataISO) + '</b>' : ''}<br>Introduz as horas para ver a classificação.`;
+    return;
+  }
+
+  const c = classificarHoras(dataISO, horas);
+  let detalhe = '';
+  if (c.tipo === '50') detalhe = `🔴 ${horas}h todas a <b>50%</b> ${fimSemana ? '(fim de semana)' : '(feriado)'}`;
+  else if (c.tipo === '25') detalhe = `🟢 ${horas}h a <b>25%</b> (1ª hora em dia útil)`;
+  else detalhe = `🟢 1h a <b>25%</b> + ${c.h375}h a <b>37,5%</b> (dia útil)`;
+
+  div.innerHTML = `<b>${dataFmt}</b> (${nomeDia})${feriado ? ' — <b>' + feriadoNome(dataISO) + '</b>' : ''}<br>${detalhe}`;
+}
+
+/* ============================================================
+   FÉRIAS
+   ============================================================ */
+function adicionarFerias() {
+  const de = document.getElementById('feriasDe').value;
+  const ate = document.getElementById('feriasAte').value;
+
+  if (!de || !ate) return alert('Preenche as duas datas');
+  if (ate < de) return alert('A data "Até" tem de ser depois do "De"');
+
+  ferias.push({ de, ate });
+  ferias.sort((a, b) => a.de.localeCompare(b.de));
+  salvarFerias();
+  renderFerias();
+  renderMes();
+}
+
+function apagarFerias(idx) {
+  if (!confirm('Apagar este período de férias?')) return;
+  ferias.splice(idx, 1);
+  salvarFerias();
+  renderFerias();
+  renderMes();
+}
+
+function renderFerias() {
+  const lista = document.getElementById('listaFerias');
+  if (!ferias.length) {
+    lista.innerHTML = '<p style="color:#94a3b8;font-size:13px">Sem férias marcadas.</p>';
+    return;
+  }
+
+  let html = '';
+  ferias.forEach((f, idx) => {
+    const deFmt = f.de.split('-').reverse().join('/');
+    const ateFmt = f.ate.split('-').reverse().join('/');
+    html += `
+      <div class="periodo-ferias">
+        <span class="info">📅 ${deFmt} → ${ateFmt}</span>
+        <button class="danger" onclick="apagarFerias(${idx})">×</button>
+      </div>`;
+  });
+  lista.innerHTML = html;
+}
+
+function salvarFerias() { localStorage.setItem(LS.ferias, JSON.stringify(ferias)); }
+
+/* ============================================================
+   GUARDAR / EDITAR / APAGAR
+   ============================================================ */
+function guardarDia() {
+  const data = document.getElementById('data').value;
+  if (!data) return alert('Escolhe uma data');
+  const horasTotal = +document.getElementById('horasTotal').value || 0;
+  if (horasTotal <= 0) return alert('Introduz as horas');
+
+  const c = classificarHoras(data, horasTotal);
+  dias[data] = { horasTotal, h25: c.h25, h375: c.h375, h50: c.h50 };
+
+  salvarDias();
+  cancelarEdicao();
+  renderMes();
+}
+
+function editarDia(dataISO) {
+  const h = dias[dataISO];
+  if (!h) return;
+
+  dataEmEdicao = dataISO;
+  document.getElementById('data').value = dataISO;
+  document.getElementById('horasTotal').value = h.horasTotal || (h.h25 + h.h375 + h.h50);
+
+  document.getElementById('avisoEdicao').classList.add('ativo');
+  document.getElementById('btnGuardar').textContent = 'Guardar alterações';
+  document.getElementById('btnCancelarEdicao').classList.remove('hide');
+
+  const mesDoDia = dataISO.slice(0,7);
+  const mesAtual = document.getElementById('mesAtual').value;
+  if (mesDoDia !== mesAtual) {
+    document.getElementById('mesAtual').value = mesDoDia;
+    renderMes();
+  }
+
+  atualizarPreview();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cancelarEdicao() {
+  dataEmEdicao = null;
+  document.getElementById('avisoEdicao').classList.remove('ativo');
+  document.getElementById('btnGuardar').textContent = 'Guardar dia';
+  document.getElementById('btnCancelarEdicao').classList.add('hide');
+  document.getElementById('horasTotal').value = 0;
+  atualizarPreview();
+}
+
+function apagarDia(data) {
+  if (!confirm('Apagar ' + data + '?')) return;
+  delete dias[data];
+  salvarDias();
+  if (dataEmEdicao === data) cancelarEdicao();
+  renderMes();
+}
+
+/* ============================================================
+   PERSISTÊNCIA
+   ============================================================ */
+function salvarDias() { localStorage.setItem(LS.dias, JSON.stringify(dias)); }
+function salvarConf() { localStorage.setItem(LS.conf, JSON.stringify(conf)); }
+function salvarDiasDesmarcados() { localStorage.setItem(LS.diasTrabalhados, JSON.stringify(diasDesmarcados)); }
+
+function toggleDiaUtil(dataISO) {
+  if (ehDiaFerias(dataISO)) return;
+  const idx = diasDesmarcados.indexOf(dataISO);
+  if (idx === -1) diasDesmarcados.push(dataISO);
+  else diasDesmarcados.splice(idx, 1);
+  salvarDiasDesmarcados();
+  renderMes();
+}
+
+/* ============================================================
+   MESES
+   ============================================================ */
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+               'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function nomeMes(mesISO) {
+  const [ano, mes] = mesISO.split('-');
+  return MESES[parseInt(mes)-1] + ' ' + ano;
+}
+
+/* ============================================================
+   IRS
+   ============================================================ */
+function calcularIRS(baseTributavel) {
+  let escalao = TABELA_IRS_2026[TABELA_IRS_2026.length - 1];
+  for (const e of TABELA_IRS_2026) {
+    if (baseTributavel <= e.limite) { escalao = e; break; }
+  }
+
+  let parcelaAbater;
+  if (escalao.tipo === 'formula') {
+    parcelaAbater = escalao.coef1 * escalao.coef2 * (escalao.const - baseTributavel);
+    if (parcelaAbater < 0) parcelaAbater = 0;
+  } else parcelaAbater = escalao.parcela;
+
+  const irsBruto = (baseTributavel * escalao.taxa) - parcelaAbater;
+  const deducaoDep = VALOR_POR_DEPENDENTE * conf.dependentes;
+  const irsFinal = irsBruto - deducaoDep;
+
+  return {
+    irs: Math.floor(Math.max(0, irsFinal)),
+    escalao, parcelaAbater, deducaoDep,
+    taxa: escalao.taxa
+  };
+}
+
+function calcularSS(baseTributavel) { return baseTributavel * (conf.ssTaxa / 100); }
+
+/* ============================================================
+   RENDER MÊS
+   ============================================================ */
+function renderMes() {
+  const mes = document.getElementById('mesAtual').value;
+  if (!mes) return;
+
+  const vh = conf.valorHora;
+  const va = conf.valorAli;
+
+  // Dias úteis
+  const uteis = diasUteisDoMes(mes);
+  const listaUteis = document.getElementById('listaDiasUteis');
+  listaUteis.innerHTML = '';
+  let trabalhados = 0;
+
+  uteis.forEach(iso => {
+    const [a, m, d] = iso.split('-');
+    const feriasDia = ehDiaFerias(iso);
+    const desmarcado = diasDesmarcados.includes(iso) || feriasDia;
+    if (!desmarcado) trabalhados++;
+
+    const div = document.createElement('div');
+    div.className = 'dia-util' + (desmarcado ? ' desmarcado' : '') + (feriasDia ? ' ferias' : '');
+    div.innerHTML = `
+      <input type="checkbox" ${desmarcado ? '' : 'checked'} ${feriasDia ? 'disabled' : ''}
+        onchange="toggleDiaUtil('${iso}')">
+      <span class="data">${d}/${m} — ${new Date(iso + 'T00:00:00').toLocaleDateString('pt-PT', { weekday: 'short' })}</span>
+      ${feriasDia ? '<span class="tag">FÉRIAS</span>' : ''}
+      ${ehFeriado(iso) ? `<span class="feriado">${feriadoNome(iso)}</span>` : ''}
+    `;
+    listaUteis.appendChild(div);
+  });
+
+  document.getElementById('resumoDias').innerHTML = `
+    <div class="resumo-dias"><span>Dias úteis no mês</span><b>${uteis.length}</b></div>
+    <div class="resumo-dias"><span>Dias efetivamente trabalhados</span><b>${trabalhados}</b></div>
+    <div class="resumo-dias"><span>Férias / faltas</span><b>${uteis.length - trabalhados}</b></div>
+  `;
+
+  // Horas extra
+  const doMes = Object.entries(dias).filter(([d]) => d.startsWith(mes)).sort();
+  let t25 = 0, t375 = 0, t50 = 0, totalHoras = 0;
+
+  const lista = document.getElementById('listaDias');
+  lista.innerHTML = doMes.length ? '' : '<p style="color:#94a3b8;font-size:14px">Sem registos.</p>';
+
+  doMes.forEach(([data, h]) => {
+    const euros = h.h25*vh*1.25 + h.h375*vh*1.375 + h.h50*vh*1.50;
+    t25 += h.h25; t375 += h.h375; t50 += h.h50;
+    totalHoras += (h.h25 + h.h375 + h.h50);
+
+    const [a, m, d] = data.split('-');
+    const diaSemana = new Date(data + 'T00:00:00').toLocaleDateString('pt-PT', { weekday: 'short' });
+    const etiqueta = h.h50 > 0
+      ? `<span style="color:#dc2626">50%</span>`
+      : h.h375 > 0
+        ? `<span style="color:#16a34a">25%+37,5%</span>`
+        : `<span style="color:#16a34a">25%</span>`;
+
+    const dia = document.createElement('div');
+    dia.className = 'dia';
+    dia.innerHTML = `
+      <span class="info">${d}/${m} (${diaSemana}) — ${etiqueta} · <b>${euros.toFixed(2)} €</b></span>
+      <span class="botoes">
+        <button class="aviso" onclick="editarDia('${data}')">Editar</button>
+        <button class="danger" onclick="apagarDia('${data}')">×</button>
+      </span>`;
+    lista.appendChild(dia);
+  });
+
+  // Cálculos
+  const base = conf.ordenadoBase;
+  const euros25  = t25  * vh * 1.25;
+  const euros375 = t375 * vh * 1.375;
+  const euros50  = t50  * vh * 1.50;
+  const totalExtra = euros25 + euros375 + euros50;
+
+  const alimentacao = trabalhados * va;
+  const totalAbonos = base + totalExtra + alimentacao;
+
+  const extraTributavel = totalExtra * TAXA_TRIBUTAVEL_HORAS_EXTRA;
+  const baseTributavel = base + extraTributavel;
+
+  const calcIRS = calcularIRS(baseTributavel);
+  const irs = calcIRS.irs;
+  const ss  = calcularSS(baseTributavel);
+  const totalDescontos = irs + ss;
+  const liquido = totalAbonos - totalDescontos;
+
+  const escalaTxt = `Escalão: ${(calcIRS.taxa*100).toFixed(2)}% · parcela ${calcIRS.parcelaAbater.toFixed(2)} € · IRS arredondado por defeito`;
+
+  document.getElementById('recibo').innerHTML = `
+    <div class="recibo">
+      <h3>Recibo de Vencimento</h3>
+      <div class="subtitulo">${nomeMes(mes)} · ${conf.dependentes} dependente(s)</div>
+
+      <div class="secao">Abonos</div>
+      <div class="linha"><span>Vencimento base</span><span>${base.toFixed(2)} €</span></div>
+      ${t25 > 0 ? `<div class="linha"><span>Horas extra 25% (${t25}h × ${(vh*1.25).toFixed(2)} €)</span><span>${euros25.toFixed(2)} €</span></div>` : ''}
+      ${t375 > 0 ? `<div class="linha"><span>Horas extra 37,5% (${t375}h × ${(vh*1.375).toFixed(2)} €)</span><span>${euros375.toFixed(2)} €</span></div>` : ''}
+      ${t50 > 0 ? `<div class="linha"><span>Horas extra 50% (${t50}h × ${(vh*1.50).toFixed(2)} €)</span><span>${euros50.toFixed(2)} €</span></div>` : ''}
+      <div class="linha"><span>Subsídio de alimentação (${trabalhados} × ${va.toFixed(2)} €)</span><span>${alimentacao.toFixed(2)} €</span></div>
+      <div class="linha total"><span>Total de abonos</span><span>${totalAbonos.toFixed(2)} €</span></div>
+
+      <div class="secao">Base tributável (IRS + SS)</div>
+      <div class="linha"><span>Vencimento base</span><span>${base.toFixed(2)} €</span></div>
+      ${totalExtra > 0 ? `<div class="linha"><span>50% das horas extra (${totalExtra.toFixed(2)} € × 50%)</span><span>${extraTributavel.toFixed(2)} €</span></div>` : ''}
+      <div class="linha total"><span>Total base tributável</span><span>${baseTributavel.toFixed(2)} €</span></div>
+
+      <div class="secao">Descontos</div>
+      <div class="linha desc"><span>IRS</span><span>-${irs.toFixed(2)} €</span></div>
+      <div class="linha desc"><span>Segurança Social (${conf.ssTaxa}%)</span><span>-${ss.toFixed(2)} €</span></div>
+      <div class="linha total"><span>Total de descontos</span><span>-${totalDescontos.toFixed(2)} €</span></div>
+
+      <div class="linha liquido"><span>Líquido a receber</span><span>${liquido.toFixed(2)} €</span></div>
+
+      <div class="info-extra">${trabalhados} dias trabalhados · ${totalHoras.toFixed(2)}h extra</div>
+      <div class="info-escalao">${escalaTxt}</div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   HISTÓRICO
+   ============================================================ */
+function renderHist() {
+  const meses = {};
+  Object.entries(dias).forEach(([data, h]) => {
+    const mes = data.slice(0,7);
+    if (!meses[mes]) meses[mes] = { h25:0, h375:0, h50:0, dias:0 };
+    meses[mes].h25 += h.h25 || 0;
+    meses[mes].h375 += h.h375 || 0;
+    meses[mes].h50 += h.h50 || 0;
+    meses[mes].dias++;
+  });
+
+  const vh = conf.valorHora;
+  const va = conf.valorAli;
+  const base = conf.ordenadoBase;
+
+  const lista = document.getElementById('listaHist');
+  const chaves = Object.keys(meses).sort().reverse();
+
+  if (!chaves.length) { lista.innerHTML = '<p style="color:#94a3b8">Sem histórico.</p>'; return; }
+
+  let html = '';
+  chaves.forEach(mes => {
+    const m = meses[mes];
+    const totalH = m.h25 + m.h375 + m.h50;
+    const euros  = m.h25*vh*1.25 + m.h375*vh*1.375 + m.h50*vh*1.5;
+
+    const uteis = diasUteisDoMes(mes);
+    const trabalhados = uteis.filter(iso => !diasDesmarcados.includes(iso) && !ehDiaFerias(iso)).length;
+    const ali = trabalhados * va;
+
+    const bruto  = base + euros + ali;
+    const extraTrib = euros * TAXA_TRIBUTAVEL_HORAS_EXTRA;
+    const baseTrib  = base + extraTrib;
+    const irs    = calcularIRS(baseTrib).irs;
+    const ss     = calcularSS(baseTrib);
+    const liq    = bruto - irs - ss;
+
+    html += `
+      <div class="dia">
+        <span>${nomeMes(mes)} <small style="color:#94a3b8">(${trabalhados} dias · ${totalH.toFixed(2)}h)</small></span>
+        <span><b>${liq.toFixed(2)} €</b></span>
+      </div>`;
+  });
+  lista.innerHTML = html;
+}
+
+/* ============================================================
+   TABELA INFORMATIVA
+   ============================================================ */
+function renderTabelaInfo() {
+  const div = document.getElementById('tabelaInfo');
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:11.5px">';
+  html += '<tr style="background:#f1f5f9"><th style="text-align:left;padding:4px">Até (€)</th><th style="text-align:right;padding:4px">Taxa</th><th style="text-align:right;padding:4px">Abater (€)</th></tr>';
+  TABELA_IRS_2026.forEach(e => {
+    const lim = e.limite === Infinity ? '∞' : e.limite.toFixed(2);
+    const parc = e.tipo === 'formula'
+      ? `${(e.taxa*100).toFixed(2)}% × ${e.coef2} × (${e.const} − R)`
+      : e.parcela.toFixed(2);
+    html += `<tr><td style="padding:4px">${lim}</td><td style="text-align:right;padding:4px">${(e.taxa*100).toFixed(2)}%</td><td style="text-align:right;padding:4px">${parc}</td></tr>`;
+  });
+  html += '</table>';
+  html += `<p style="font-size:11.5px;color:#64748b;margin-top:8px">Por dependente: <b>${VALOR_POR_DEPENDENTE.toFixed(2)} €</b>/mês</p>`;
+  html += `<p style="font-size:11.5px;color:#64748b;margin-top:6px"><b>Regras aplicadas:</b></p>`;
+  html += `<ul style="font-size:11.5px;color:#64748b;padding-left:18px;margin:4px 0">`;
+  html += `<li>Horas em dia útil: 1ª hora a <b>25%</b>, restantes a <b>37,5%</b>.</li>`;
+  html += `<li>Horas em fim de semana ou feriado: todas a <b>50%</b>.</li>`;
+  html += `<li>Subsídio de alimentação: <b>não</b> pago em férias nem faltas.</li>`;
+  html += `<li>Horas extra: apenas <b>50%</b> entra para a base tributável.</li>`;
+  html += `<li>IRS: arredondado sempre para baixo (euros inteiros).</li>`;
+  html += `</ul>`;
+  div.innerHTML = html;
+}
+
+/* ============================================================
+   CONFIG
+   ============================================================ */
+function guardarConf() {
+  conf.ordenadoBase = +document.getElementById('ordenadoBase').value;
+  conf.valorHora    = +document.getElementById('valorHoraConf').value;
+  conf.valorAli     = +document.getElementById('valorAliConf').value;
+  conf.diasUteis    = +document.getElementById('diasUteis').value;
+  conf.situacao     = document.getElementById('situacao').value;
+  conf.dependentes  = +document.getElementById('dependentes').value;
+  conf.ssTaxa       = +document.getElementById('ssTaxa').value;
+  conf.feriadoMunicipalData = document.getElementById('feriadoMunicipalData').value;
+  conf.feriadoMunicipalNome = document.getElementById('feriadoMunicipalNome').value;
+  salvarConf();
+
+  document.getElementById('valorHora').value = conf.valorHora;
+  document.getElementById('valorAli').value  = conf.valorAli;
+
+  alert('Guardado!');
+  renderMes();
+  renderHist();
+}
+
+/* ============================================================
+   BACKUP / RESTAURO
+   ============================================================ */
+function fazerBackup() {
+  const dados = {
+    versao: 1,
+    data: new Date().toISOString(),
+    conf: conf,
+    dias: dias,
+    diasDesmarcados: diasDesmarcados,
+    ferias: ferias
+  };
+
+  const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const hoje = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `banco-horas-backup-${hoje}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function carregarBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!confirm('Carregar backup?\n\nIsto vai substituir TODOS os dados atuais.')) {
+    event.target.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const dados = JSON.parse(e.target.result);
+      if (!dados || typeof dados !== 'object') throw new Error('Ficheiro inválido');
+
+      if (dados.conf) { conf = Object.assign(conf, dados.conf); salvarConf(); }
+      if (dados.dias) { dias = dados.dias; salvarDias(); }
+      if (dados.diasDesmarcados) { diasDesmarcados = dados.diasDesmarcados; salvarDiasDesmarcados(); }
+      if (dados.ferias) { ferias = dados.ferias; salvarFerias(); }
+
+      document.getElementById('ordenadoBase').value = conf.ordenadoBase;
+      document.getElementById('valorHoraConf').value = conf.valorHora;
+      document.getElementById('valorAliConf').value  = conf.valorAli;
+      document.getElementById('diasUteis').value     = conf.diasUteis;
+      document.getElementById('situacao').value      = conf.situacao;
+      document.getElementById('dependentes').value   = conf.dependentes;
+      document.getElementById('ssTaxa').value        = conf.ssTaxa;
+      document.getElementById('feriadoMunicipalData').value = conf.feriadoMunicipalData || '';
+      document.getElementById('feriadoMunicipalNome').value = conf.feriadoMunicipalNome || '';
+      document.getElementById('valorHora').value     = conf.valorHora;
+      document.getElementById('valorAli').value      = conf.valorAli;
+
+      renderFerias();
+      renderMes();
+      renderHist();
+      alert('Backup carregado com sucesso!');
+    } catch (err) {
+      alert('Erro ao carregar o backup:\n' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function apagarTudo() {
+  if (!confirm('Apagar TODOS os dados? Isto não pode ser desfeito.')) return;
+  if (!confirm('Tens a certeza? Recomendo fazeres um backup primeiro.')) return;
+
+  localStorage.removeItem(LS.dias);
+  localStorage.removeItem(LS.diasTrabalhados);
+  localStorage.removeItem(LS.ferias);
+  dias = {};
+  diasDesmarcados = [];
+  ferias = [];
+  cancelarEdicao();
+  renderFerias();
+  renderMes();
+  renderHist();
+}
+
+/* ============================================================
+   PWA — SERVICE WORKER + INSTALAÇÃO
+   ============================================================ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
+      console.log('SW não registado:', err);
+    });
+  });
+}
+
+let promptInstalar = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  promptInstalar = e;
+  document.getElementById('btnInstalar').classList.remove('hide');
+});
+
+function instalarApp() {
+  if (!promptInstalar) return;
+  promptInstalar.prompt();
+  promptInstalar.userChoice.then(choice => {
+    if (choice.outcome === 'accepted') {
+      document.getElementById('btnInstalar').classList.add('hide');
+    }
+    promptInstalar = null;
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('btnInstalar').classList.add('hide');
+});
+</script>
+</body>
+</html>
