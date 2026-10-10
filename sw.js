@@ -3,6 +3,7 @@ const CACHE = 'banco-horas-v1';
 const FICHEIROS = [
   './',
   './index.html',
+  './tabela-irs.json',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
