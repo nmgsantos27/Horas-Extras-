@@ -1124,16 +1124,17 @@ function nomeMes(mesISO) {
 }
 
 /* ============================================================
-   IRS
+   IRS — Conforme recibo real
    ------------------------------------------------------------
-   Conforme art. 99.º-C do Código do IRS:
-   - Ordenado base: retenção normal pela tabela
-   - Horas extra: retenção autónoma a 50% da taxa efetiva
-   - Arredondamento para baixo (unidade de euro)
+   1. IRS base = Math.floor(IRS calculado pela tabela)
+   2. Taxa efetiva = IRS base arredondado ÷ ordenado base
+   3. Taxa horas extra = taxa efetiva × 50%
+   4. IRS horas extra = horas extra × taxa horas extra (SEM arredondar)
+   5. IRS total = IRS base + IRS horas extra (SEM arredondar)
    ============================================================ */
 function calcularIRSSobreBase(baseTributavel) {
   if (!TABELA_ATUAL || !TABELA_ATUAL.escaloes.length) {
-    return { irs: 0, irsExato: 0, escalao: null, parcelaAbater: 0, deducaoDep: 0, taxa: 0, taxaEfetiva: 0 };
+    return { irsBase: 0, escalao: null, parcelaAbater: 0, deducaoDep: 0, taxa: 0, taxaEfetiva: 0 };
   }
 
   let escalao = TABELA_ATUAL.escaloes[TABELA_ATUAL.escaloes.length - 1];
@@ -1152,39 +1153,41 @@ function calcularIRSSobreBase(baseTributavel) {
   const irsBruto = (baseTributavel * escalao.taxa) - parcelaAbater;
   const deducaoDep = VALOR_POR_DEPENDENTE * conf.dependentes;
   const irsExato = Math.max(0, irsBruto - deducaoDep);
-  const irs = Math.floor(irsExato);
+  const irsBase = Math.floor(irsExato);
 
   return {
-    irs: irs,
+    irsBase: irsBase,
     irsExato: irsExato,
     escalao: escalao,
     parcelaAbater: parcelaAbater,
     deducaoDep: deducaoDep,
     taxa: escalao.taxa,
-    taxaEfetiva: baseTributavel > 0 ? irsExato / baseTributavel : 0
+    taxaEfetiva: baseTributavel > 0 ? irsBase / baseTributavel : 0
   };
 }
 
 function calcularIRS(baseTributavel, totalExtra) {
-  // 1. IRS sobre o ordenado base
+  // 1. IRS do ordenado base (arredondado para baixo)
   const rBase = calcularIRSSobreBase(baseTributavel);
+  const irsBase = rBase.irsBase;
+  const taxaEfetiva = rBase.taxaEfetiva;
 
-  // 2. IRS sobre horas extra (autónomo, 50% da taxa efetiva)
+  // 2. IRS das horas extra (50% da taxa efetiva, SEM arredondar)
   let irsExtra = 0;
   let taxaExtra = 0;
-  if (totalExtra > 0 && rBase.taxaEfetiva > 0) {
-    taxaExtra = rBase.taxaEfetiva * TAXA_TRIBUTAVEL_HORAS_EXTRA;
+  if (totalExtra > 0 && taxaEfetiva > 0) {
+    taxaExtra = taxaEfetiva * TAXA_TRIBUTAVEL_HORAS_EXTRA;
     irsExtra = totalExtra * taxaExtra;
   }
 
-  // 3. Total arredondado para baixo
-  const irsTotal = Math.floor(rBase.irsExato + irsExtra);
+  // 3. Total: SEM arredondamento final
+  const irsTotal = irsBase + irsExtra;
 
   return {
     irs: irsTotal,
-    irsBase: rBase.irs,
+    irsBase: irsBase,
     irsExtra: irsExtra,
-    taxaEfetivaBase: rBase.taxaEfetiva,
+    taxaEfetivaBase: taxaEfetiva,
     taxaExtra: taxaExtra,
     escalao: rBase.escalao,
     parcelaAbater: rBase.parcelaAbater,
@@ -1284,7 +1287,7 @@ function renderMes() {
   const liquido = totalAbonos - totalDescontos;
 
   const escalaTxt = calcIRS.escalao
-    ? `Tabela ${conf.situacao} · taxa efetiva base ${(calcIRS.taxaEfetivaBase*100).toFixed(2)}% · horas extra a 50% desta`
+    ? `Tabela ${conf.situacao} · taxa efetiva base ${(calcIRS.taxaEfetivaBase*100).toFixed(4)}% · horas extra a 50% desta`
     : 'Tabela IRS não carregada';
 
   document.getElementById('recibo').innerHTML = `
@@ -1300,18 +1303,14 @@ function renderMes() {
       <div class="linha"><span>Subsídio de alimentação (${trabalhados} × ${va.toFixed(2)} €)</span><span>${alimentacao.toFixed(2)} €</span></div>
       <div class="linha total"><span>Total de abonos</span><span>${totalAbonos.toFixed(2)} €</span></div>
 
-      <div class="secao">Base para retenção</div>
-      <div class="linha"><span>Vencimento base</span><span>${base.toFixed(2)} €</span></div>
-      ${totalExtra > 0 ? `<div class="linha"><span>Horas extra (retenção autónoma)</span><span>${totalExtra.toFixed(2)} €</span></div>` : ''}
-
       <div class="secao">Descontos</div>
       <div class="linha desc">
-        <span>IRS — base (taxa efetiva ${(calcIRS.taxaEfetivaBase*100).toFixed(2)}%)</span>
+        <span>IRS — base (taxa efetiva ${(calcIRS.taxaEfetivaBase*100).toFixed(4)}%)</span>
         <span>-${calcIRS.irsBase.toFixed(2)} €</span>
       </div>
       ${totalExtra > 0 ? `
       <div class="linha desc">
-        <span>IRS — horas extra (50% da taxa efetiva = ${(calcIRS.taxaExtra*100).toFixed(2)}%)</span>
+        <span>IRS — horas extra (50% da taxa efetiva = ${(calcIRS.taxaExtra*100).toFixed(4)}%)</span>
         <span>-${calcIRS.irsExtra.toFixed(2)} €</span>
       </div>` : ''}
       <div class="linha desc"><span>Segurança Social (${conf.ssTaxa}%)</span><span>-${ss.toFixed(2)} €</span></div>
@@ -1412,9 +1411,9 @@ function renderTabelaInfo() {
   html += `<li>Horas em dia útil: 1ª hora a <b>25%</b>, restantes a <b>37,5%</b>.</li>`;
   html += `<li>Horas em fim de semana ou feriado: todas a <b>50%</b>.</li>`;
   html += `<li>Subsídio de alimentação: <b>não</b> pago em férias nem faltas.</li>`;
-  html += `<li><b>IRS:</b> ordenado base à taxa normal; horas extra em retenção autónoma a <b>50% da taxa efetiva</b> (art. 99.º-C do CIRS).</li>`;
+  html += `<li><b>IRS base:</b> calculado pela tabela e arredondado para baixo (euros inteiros).</li>`;
+  html += `<li><b>IRS horas extra:</b> retenção autónoma a <b>50% da taxa efetiva</b> (art. 99.º-C do CIRS), sem arredondamento.</li>`;
   html += `<li><b>Segurança Social:</b> ${conf.ssTaxa}% sobre o ordenado base + valor total das horas extra.</li>`;
-  html += `<li>IRS: arredondado sempre para baixo (euros inteiros).</li>`;
   html += `</ul>`;
   div.innerHTML = html;
 }
