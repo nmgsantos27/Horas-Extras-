@@ -118,7 +118,6 @@
     font-size: 11px; border-radius: 5px;
   }
 
-  /* ===== TABS — 4 botões sempre visíveis ===== */
   .tabs {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -426,8 +425,12 @@
     border: 1.5px solid transparent;
     overflow: hidden;
     min-width: 0;
+    cursor: pointer;
+    user-select: none;
   }
-  .cal-dia.vazio { background: transparent; }
+  .cal-dia:active { transform: scale(0.95); }
+  .cal-dia.vazio { background: transparent; cursor: default; }
+  .cal-dia.vazio:active { transform: none; }
   .cal-dia.a {
     background: var(--turno-a-bg);
     color: var(--turno-a-texto);
@@ -471,6 +474,112 @@
     opacity: .5;
   }
   .cal-dia.ferias .num { text-decoration: line-through; }
+
+  /* ===== MODAL DE DIA ===== */
+  #modalDia {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  #modalDia .caixa {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 18px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,.3);
+  }
+  #modalDia h3 {
+    margin: 0 0 12px;
+    font-size: 17px;
+    color: var(--azul);
+    text-align: center;
+  }
+  #modalDia .info-linha {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--borda);
+    font-size: 13.5px;
+    gap: 8px;
+  }
+  #modalDia .info-linha:last-child { border-bottom: none; }
+  #modalDia .info-linha span:first-child { color: var(--texto-fraco); }
+  #modalDia .info-linha span:last-child { font-weight: 600; text-align: right; }
+  #modalDia .tag-turno {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  #modalDia .tag-turno.a {
+    background: var(--turno-a-bg);
+    color: var(--turno-a-texto);
+  }
+  #modalDia .tag-turno.b {
+    background: var(--turno-b-bg);
+    color: var(--turno-b-texto);
+  }
+  #modalDia .tag-feriado {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 13px;
+    background: var(--amarelo-bg);
+    color: var(--amarelo-texto);
+  }
+  #modalDia .tag-ferias {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 13px;
+    background: var(--roxo);
+    color: #fff;
+  }
+  #modalDia button {
+    margin-top: 14px;
+  }
+
+  /* ===== EXCEÇÕES ===== */
+  .excecao-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--borda);
+    font-size: 13px;
+    gap: 6px;
+  }
+  .excecao-item:last-child { border-bottom: none; }
+  .excecao-item .info { flex: 1; min-width: 0; }
+  .excecao-item button {
+    width: auto; padding: 4px 7px; margin: 0;
+    font-size: 11px; border-radius: 5px;
+  }
+  .tag-excecao {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+  .tag-excecao.a {
+    background: var(--turno-a-bg);
+    color: var(--turno-a-texto);
+  }
+  .tag-excecao.b {
+    background: var(--turno-b-bg);
+    color: var(--turno-b-texto);
+  }
 
   .legenda-turnos {
     display: flex;
@@ -652,12 +761,34 @@
 
     <div class="card">
       <h2 style="margin-top:0">Calendário de turnos</h2>
+      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
+        Toca num dia para ver os detalhes.
+      </p>
       <div class="calendario" id="calendario"></div>
       <div class="legenda-turnos">
         <span><span class="quadrado" style="background:var(--turno-a-bg)"></span><span id="legendaA">Turno A</span></span>
         <span><span class="quadrado" style="background:var(--turno-b-bg)"></span><span id="legendaB">Turno B</span></span>
         <span><span class="quadrado" style="background:var(--amarelo-bg);border:1px solid var(--amarelo-texto)"></span>Feriado</span>
       </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Exceções (trocar semanas)</h2>
+      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
+        Podes trocar uma semana específica com um colega, sem afetar as restantes. Escolhe a segunda-feira da semana a alterar.
+      </p>
+
+      <label>Segunda-feira da semana</label>
+      <input type="date" id="exc_data">
+
+      <label>Turno dessa semana</label>
+      <select id="exc_turno">
+        <option value="A">Turno A</option>
+        <option value="B">Turno B</option>
+      </select>
+
+      <button class="verde" onclick="adicionarExcecao()">+ Adicionar exceção</button>
+      <div id="listaExcecoes" style="margin-top:8px"></div>
     </div>
 
     <div class="card">
@@ -813,6 +944,15 @@
   <button id="btnInstalar" class="hide" onclick="instalarApp()">📲 Instalar app</button>
 </div>
 
+<!-- ===== MODAL DE DIA ===== -->
+<div id="modalDia" class="hide" onclick="fecharModalDia(event)">
+  <div class="caixa" onclick="event.stopPropagation()">
+    <h3 id="modalTitulo">Detalhes do dia</h3>
+    <div id="modalConteudo"></div>
+    <button class="sec" onclick="fecharModalDia()">Fechar</button>
+  </div>
+</div>
+
 <script>
 /* ============================================================
    VARIÁVEIS GLOBAIS
@@ -895,11 +1035,13 @@ const LS = {
   diasTrabalhados: 'bh_dias_trab',
   ferias: 'bh_ferias',
   turnos: 'bh_turnos',
+  excecoes: 'bh_excecoes',
   configurado: 'bh_configurado'
 };
 
 let conf = {};
 let confTurnos = {};
+let excecoes = {}; // { 'YYYY-MM-DD' (segunda): 'A' ou 'B' }
 let dias = {};
 let diasDesmarcados = [];
 let ferias = [];
@@ -923,6 +1065,8 @@ function carregarDadosLocais() {
     inicioB: '17:00', fimB: '01:00',
     dataRef: '', turnoInicial: 'A'
   }, confTurnos);
+
+  excecoes = JSON.parse(localStorage.getItem(LS.excecoes) || '{}');
 
   dias = JSON.parse(localStorage.getItem(LS.dias) || '{}');
   diasDesmarcados = JSON.parse(localStorage.getItem(LS.diasTrabalhados) || '[]');
@@ -985,6 +1129,20 @@ function ehFeriado(dataISO) {
 
 function feriadoNome(dataISO) {
   const nomes = {
+    '2026-01-01': 'Ano Novo', '2026-04-03': 'Sexta-feira Santa',
+    '2026-04-05': 'Páscoa', '2026-04-25': 'Dia da Liberdade',
+    '2026-05-01': 'Dia do Trabalhador', '2026-06-04': 'Corpo de Deus',
+    '2026-06-10': 'Dia de Portugal', '2026-08-15': 'Assunção',
+    '2026-10-05': 'Implantação da República', '2026-11-01': 'Todos os Santos',
+    '2026-12-01': 'Restauração', '2026-12-08': 'Imaculada Conceição',
+    '2026-12-25': 'Natal'
+  };
+  if (dataISO === conf.feriadoMunicipalData) return conf.feriadoMunicipalNome || 'Feriado Municipal';
+  return nomes[dataISO] || 'Feriado';
+}
+
+function feriadoNomeCurto(dataISO) {
+  const nomes = {
     '2026-01-01': 'Ano Novo', '2026-04-03': 'Sexta Santa',
     '2026-04-05': 'Páscoa', '2026-04-25': 'Liberdade',
     '2026-05-01': 'Trabalhador', '2026-06-04': 'Corpo de Deus',
@@ -993,7 +1151,7 @@ function feriadoNome(dataISO) {
     '2026-12-01': 'Restauração', '2026-12-08': 'Imaculada',
     '2026-12-25': 'Natal'
   };
-  if (dataISO === conf.feriadoMunicipalData) return conf.feriadoMunicipalNome || 'Feriado Mun.';
+  if (dataISO === conf.feriadoMunicipalData) return (conf.feriadoMunicipalNome || 'Feriado Mun.').substring(0, 10);
   return nomes[dataISO] || 'Feriado';
 }
 
@@ -1027,14 +1185,22 @@ function turnoDoDia(dataISO) {
   const d = new Date(dataISO + 'T00:00:00');
   const segRef = segundaDaSemana(new Date(confTurnos.dataRef + 'T00:00:00'));
   const segDia = segundaDaSemana(d);
-  const msSemana = 7 * 24 * 60 * 60 * 1000;
-  const semanas = Math.round((segDia - segRef) / msSemana);
+  const segDiaISO = formatarData(segDia);
+
+  // Verificar se há exceção para esta semana
   let turno;
-  if (semanas % 2 === 0) {
-    turno = confTurnos.turnoInicial;
+  if (excecoes[segDiaISO]) {
+    turno = excecoes[segDiaISO];
   } else {
-    turno = confTurnos.turnoInicial === 'A' ? 'B' : 'A';
+    const msSemana = 7 * 24 * 60 * 60 * 1000;
+    const semanas = Math.round((segDia - segRef) / msSemana);
+    if (semanas % 2 === 0) {
+      turno = confTurnos.turnoInicial;
+    } else {
+      turno = confTurnos.turnoInicial === 'A' ? 'B' : 'A';
+    }
   }
+
   return {
     codigo: turno,
     nome: turno === 'A' ? confTurnos.nomeA : confTurnos.nomeB,
@@ -1206,7 +1372,7 @@ function mudarTab(t) {
       .classList.toggle('active', x === t);
   });
   if (t === 'hist') renderHist();
-  if (t === 'turnos') renderTurnos();
+  if (t === 'turnos') { renderTurnos(); renderExcecoes(); }
 }
 
 function atualizarPreview() {
@@ -1324,6 +1490,7 @@ function salvarDias() { localStorage.setItem(LS.dias, JSON.stringify(dias)); }
 function salvarConf() { localStorage.setItem(LS.conf, JSON.stringify(conf)); }
 function salvarConfTurnos() { localStorage.setItem(LS.turnos, JSON.stringify(confTurnos)); }
 function salvarDiasDesmarcados() { localStorage.setItem(LS.diasTrabalhados, JSON.stringify(diasDesmarcados)); }
+function salvarExcecoes() { localStorage.setItem(LS.excecoes, JSON.stringify(excecoes)); }
 
 function toggleDiaUtil(dataISO) {
   if (ehDiaFerias(dataISO)) return;
@@ -1350,6 +1517,145 @@ function guardarConfigTurnos() {
   renderMes();
 }
 
+/* ============================================================
+   EXCEÇÕES — trocar semanas
+   ============================================================ */
+function adicionarExcecao() {
+  const dataExc = document.getElementById('exc_data').value;
+  if (!dataExc) return alert('Escolhe a segunda-feira da semana');
+
+  const d = new Date(dataExc + 'T00:00:00');
+  if (d.getDay() !== 1) {
+    if (!confirm('A data escolhida não é segunda-feira. Queres usar a segunda-feira da semana dessa data?')) return;
+  }
+
+  const seg = segundaDaSemana(d);
+  const segISO = formatarData(seg);
+  const turno = document.getElementById('exc_turno').value;
+
+  excecoes[segISO] = turno;
+  salvarExcecoes();
+  renderExcecoes();
+  renderTurnos();
+  renderMes();
+  alert('Exceção guardada para a semana de ' + segISO.split('-').reverse().join('/'));
+}
+
+function apagarExcecao(segISO) {
+  if (!confirm('Apagar esta exceção?')) return;
+  delete excecoes[segISO];
+  salvarExcecoes();
+  renderExcecoes();
+  renderTurnos();
+  renderMes();
+}
+
+function renderExcecoes() {
+  const lista = document.getElementById('listaExcecoes');
+  const chaves = Object.keys(excecoes).sort();
+
+  if (!chaves.length) {
+    lista.innerHTML = '<p style="color:var(--texto-muito-fraco);font-size:12.5px">Sem exceções. O calendário segue a alternância automática.</p>';
+    return;
+  }
+
+  let html = '';
+  chaves.forEach(segISO => {
+    const seg = new Date(segISO + 'T00:00:00');
+    const dom = new Date(seg);
+    dom.setDate(dom.getDate() + 6);
+    const deFmt = seg.getDate() + '/' + (seg.getMonth()+1);
+    const ateFmt = dom.getDate() + '/' + (dom.getMonth()+1);
+    const turno = excecoes[segISO];
+    const nomeTurno = turno === 'A' ? confTurnos.nomeA : confTurnos.nomeB;
+
+    html += `
+      <div class="excecao-item">
+        <span class="info">Semana ${deFmt} → ${ateFmt}</span>
+        <span class="tag-excecao ${turno === 'A' ? 'a' : 'b'}">${nomeTurno}</span>
+        <button class="danger" onclick="apagarExcecao('${segISO}')">×</button>
+      </div>`;
+  });
+  lista.innerHTML = html;
+}
+
+/* ============================================================
+   MODAL DE DIA
+   ============================================================ */
+function abrirModalDia(dataISO) {
+  const d = new Date(dataISO + 'T00:00:00');
+  const nomeDia = d.toLocaleDateString('pt-PT', { weekday: 'long' });
+  const dataFmt = d.toLocaleDateString('pt-PT');
+  const feriado = ehFeriado(dataISO);
+  const feriasDia = ehDiaFerias(dataISO);
+  const turno = turnoDoDia(dataISO);
+  const horasDia = dias[dataISO];
+
+  document.getElementById('modalTitulo').textContent = dataFmt + ' (' + nomeDia + ')';
+
+  let html = '';
+
+  // Turno
+  html += `<div class="info-linha">
+    <span>Turno</span>
+    <span>${turno ? `<span class="tag-turno ${turno.codigo === 'A' ? 'a' : 'b'}">${turno.nome}</span>` : '—'}</span>
+  </div>`;
+  if (turno) {
+    html += `<div class="info-linha"><span>Horário</span><span>${turno.inicio} → ${turno.fim}</span></div>`;
+  }
+
+  // Feriado
+  if (feriado) {
+    html += `<div class="info-linha">
+      <span>Feriado</span>
+      <span><span class="tag-feriado">${feriadoNome(dataISO)}</span></span>
+    </div>`;
+  }
+
+  // Férias
+  if (feriasDia) {
+    html += `<div class="info-linha">
+      <span>Férias</span>
+      <span><span class="tag-ferias">Marcado</span></span>
+    </div>`;
+  }
+
+  // Horas extra
+  if (horasDia) {
+    const vh = conf.valorHora;
+    const h25 = horasDia.h25 || 0;
+    const h375 = horasDia.h375 || 0;
+    const h50 = horasDia.h50 || 0;
+    const totalH = h25 + h375 + h50;
+    const euros = h25*vh*1.25 + h375*vh*1.375 + h50*vh*1.50;
+
+    html += `<div class="info-linha"><span>Horas extra</span><span>${totalH}h</span></div>`;
+    if (h25 > 0) html += `<div class="info-linha"><span>· 25%</span><span>${h25}h</span></div>`;
+    if (h375 > 0) html += `<div class="info-linha"><span>· 37,5%</span><span>${h375}h</span></div>`;
+    if (h50 > 0) html += `<div class="info-linha"><span>· 50%</span><span>${h50}h</span></div>`;
+    html += `<div class="info-linha"><span>Valor</span><span><b>${euros.toFixed(2)} €</b></span></div>`;
+  } else {
+    html += `<div class="info-linha"><span>Horas extra</span><span>—</span></div>`;
+  }
+
+  // Dia da semana (útil/fim de semana)
+  html += `<div class="info-linha">
+    <span>Tipo de dia</span>
+    <span>${ehFimDeSemana(d) ? 'Fim de semana' : (feriado ? 'Feriado' : 'Dia útil')}</span>
+  </div>`;
+
+  document.getElementById('modalConteudo').innerHTML = html;
+  document.getElementById('modalDia').classList.remove('hide');
+}
+
+function fecharModalDia(event) {
+  if (event && event.target && event.target.id !== 'modalDia') return;
+  document.getElementById('modalDia').classList.add('hide');
+}
+
+/* ============================================================
+   CALENDÁRIO DE TURNOS
+   ============================================================ */
 function renderTurnos() {
   const mesISO = document.getElementById('mesTurnos').value;
   if (!mesISO) return;
@@ -1382,7 +1688,7 @@ function renderTurnos() {
     const turno = turnoDoDia(iso);
     const feriasDia = ehDiaFerias(iso);
     const feriado = ehFeriado(iso);
-    const nomeFer = feriado ? feriadoNome(iso) : '';
+    const nomeFer = feriado ? feriadoNomeCurto(iso) : '';
 
     const div = document.createElement('div');
     div.className = 'cal-dia';
@@ -1398,6 +1704,8 @@ function renderTurnos() {
       html += `<span class="mini-turno">${turno.nome}</span>`;
     }
     div.innerHTML = html;
+
+    div.onclick = () => abrirModalDia(iso);
     cal.appendChild(div);
   }
 
@@ -1411,10 +1719,11 @@ function renderTurnos() {
     dom.setDate(dom.getDate() + 6);
     const segISO = formatarData(seg);
     const turno = turnoDoDia(segISO);
+    const temExcecao = excecoes[segISO] ? ' (exceção)' : '';
     const div = document.createElement('div');
     div.className = 'semana-linha';
     div.innerHTML = `
-      <span class="info"><b>${seg.getDate()}/${seg.getMonth()+1}</b> → <b>${dom.getDate()}/${dom.getMonth()+1}</b></span>
+      <span class="info"><b>${seg.getDate()}/${seg.getMonth()+1}</b> → <b>${dom.getDate()}/${dom.getMonth()+1}</b>${temExcecao}</span>
       <span>${turno ? `<span class="turno-tag ${turno.codigo === 'A' ? 'a' : 'b'}">${turno.nome}</span>` : ''}</span>
     `;
     listaSemanas.appendChild(div);
@@ -1683,8 +1992,8 @@ function guardarConf() {
 
 function fazerBackup() {
   const dados = {
-    versao: 2, data: new Date().toISOString(),
-    conf, confTurnos, dias, diasDesmarcados, ferias
+    versao: 3, data: new Date().toISOString(),
+    conf, confTurnos, excecoes, dias, diasDesmarcados, ferias
   };
   const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -1712,6 +2021,7 @@ function carregarBackup(event) {
       if (!dados || typeof dados !== 'object') throw new Error('Ficheiro inválido');
       if (dados.conf) { conf = Object.assign(conf, dados.conf); salvarConf(); }
       if (dados.confTurnos) { confTurnos = Object.assign(confTurnos, dados.confTurnos); salvarConfTurnos(); }
+      if (dados.excecoes) { excecoes = dados.excecoes; salvarExcecoes(); }
       if (dados.dias) { dias = dados.dias; salvarDias(); }
       if (dados.diasDesmarcados) { diasDesmarcados = dados.diasDesmarcados; salvarDiasDesmarcados(); }
       if (dados.ferias) { ferias = dados.ferias; salvarFerias(); }
@@ -1727,6 +2037,7 @@ function carregarBackup(event) {
       renderMes();
       renderHist();
       renderTurnos();
+      renderExcecoes();
       alert('Backup carregado com sucesso!');
     } catch (err) {
       alert('Erro ao carregar o backup:\n' + err.message);
@@ -1744,6 +2055,7 @@ function apagarTudo() {
   localStorage.removeItem(LS.ferias);
   localStorage.removeItem(LS.conf);
   localStorage.removeItem(LS.turnos);
+  localStorage.removeItem(LS.excecoes);
   localStorage.removeItem(LS.configurado);
   alert('Dados apagados. A app vai recomeçar.');
   location.reload();
