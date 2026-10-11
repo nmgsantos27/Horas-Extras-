@@ -505,6 +505,7 @@
   #modalDia .info-linha {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid var(--borda);
     font-size: 13.5px;
@@ -945,7 +946,7 @@
 </div>
 
 <!-- ===== MODAL DE DIA ===== -->
-<div id="modalDia" class="hide" onclick="fecharModalDia(event)">
+<div id="modalDia" class="hide">
   <div class="caixa" onclick="event.stopPropagation()">
     <h3 id="modalTitulo">Detalhes do dia</h3>
     <div id="modalConteudo"></div>
@@ -1041,7 +1042,7 @@ const LS = {
 
 let conf = {};
 let confTurnos = {};
-let excecoes = {}; // { 'YYYY-MM-DD' (segunda): 'A' ou 'B' }
+let excecoes = {};
 let dias = {};
 let diasDesmarcados = [];
 let ferias = [];
@@ -1187,7 +1188,6 @@ function turnoDoDia(dataISO) {
   const segDia = segundaDaSemana(d);
   const segDiaISO = formatarData(segDia);
 
-  // Verificar se há exceção para esta semana
   let turno;
   if (excecoes[segDiaISO]) {
     turno = excecoes[segDiaISO];
@@ -1518,7 +1518,7 @@ function guardarConfigTurnos() {
 }
 
 /* ============================================================
-   EXCEÇÕES — trocar semanas
+   EXCEÇÕES
    ============================================================ */
 function adicionarExcecao() {
   const dataExc = document.getElementById('exc_data').value;
@@ -1552,6 +1552,7 @@ function apagarExcecao(segISO) {
 
 function renderExcecoes() {
   const lista = document.getElementById('listaExcecoes');
+  if (!lista) return;
   const chaves = Object.keys(excecoes).sort();
 
   if (!chaves.length) {
@@ -1583,74 +1584,78 @@ function renderExcecoes() {
    MODAL DE DIA
    ============================================================ */
 function abrirModalDia(dataISO) {
-  const d = new Date(dataISO + 'T00:00:00');
-  const nomeDia = d.toLocaleDateString('pt-PT', { weekday: 'long' });
-  const dataFmt = d.toLocaleDateString('pt-PT');
-  const feriado = ehFeriado(dataISO);
-  const feriasDia = ehDiaFerias(dataISO);
-  const turno = turnoDoDia(dataISO);
-  const horasDia = dias[dataISO];
+  if (!dataISO) return;
 
-  document.getElementById('modalTitulo').textContent = dataFmt + ' (' + nomeDia + ')';
+  try {
+    const d = new Date(dataISO + 'T00:00:00');
+    const nomeDia = d.toLocaleDateString('pt-PT', { weekday: 'long' });
+    const dataFmt = d.toLocaleDateString('pt-PT');
+    const feriado = ehFeriado(dataISO);
+    const feriasDia = ehDiaFerias(dataISO);
+    const turno = turnoDoDia(dataISO);
+    const horasDia = dias[dataISO];
 
-  let html = '';
+    document.getElementById('modalTitulo').textContent = dataFmt + ' (' + nomeDia + ')';
 
-  // Turno
-  html += `<div class="info-linha">
-    <span>Turno</span>
-    <span>${turno ? `<span class="tag-turno ${turno.codigo === 'A' ? 'a' : 'b'}">${turno.nome}</span>` : '—'}</span>
-  </div>`;
-  if (turno) {
-    html += `<div class="info-linha"><span>Horário</span><span>${turno.inicio} → ${turno.fim}</span></div>`;
-  }
+    let html = '';
 
-  // Feriado
-  if (feriado) {
     html += `<div class="info-linha">
-      <span>Feriado</span>
-      <span><span class="tag-feriado">${feriadoNome(dataISO)}</span></span>
+      <span>Turno</span>
+      <span>${turno ? `<span class="tag-turno ${turno.codigo === 'A' ? 'a' : 'b'}">${turno.nome}</span>` : '—'}</span>
     </div>`;
-  }
+    if (turno) {
+      html += `<div class="info-linha"><span>Horário</span><span>${turno.inicio} → ${turno.fim}</span></div>`;
+    }
 
-  // Férias
-  if (feriasDia) {
+    if (feriado) {
+      html += `<div class="info-linha">
+        <span>Feriado</span>
+        <span><span class="tag-feriado">${feriadoNome(dataISO)}</span></span>
+      </div>`;
+    }
+
+    if (feriasDia) {
+      html += `<div class="info-linha">
+        <span>Férias</span>
+        <span><span class="tag-ferias">Marcado</span></span>
+      </div>`;
+    }
+
+    if (horasDia) {
+      const vh = conf.valorHora;
+      const h25 = horasDia.h25 || 0;
+      const h375 = horasDia.h375 || 0;
+      const h50 = horasDia.h50 || 0;
+      const totalH = h25 + h375 + h50;
+      const euros = h25*vh*1.25 + h375*vh*1.375 + h50*vh*1.50;
+
+      html += `<div class="info-linha"><span>Horas extra</span><span>${totalH}h</span></div>`;
+      if (h25 > 0) html += `<div class="info-linha"><span>· 25%</span><span>${h25}h</span></div>`;
+      if (h375 > 0) html += `<div class="info-linha"><span>· 37,5%</span><span>${h375}h</span></div>`;
+      if (h50 > 0) html += `<div class="info-linha"><span>· 50%</span><span>${h50}h</span></div>`;
+      html += `<div class="info-linha"><span>Valor</span><span><b>${euros.toFixed(2)} €</b></span></div>`;
+    } else {
+      html += `<div class="info-linha"><span>Horas extra</span><span>—</span></div>`;
+    }
+
     html += `<div class="info-linha">
-      <span>Férias</span>
-      <span><span class="tag-ferias">Marcado</span></span>
+      <span>Tipo de dia</span>
+      <span>${ehFimDeSemana(d) ? 'Fim de semana' : (feriado ? 'Feriado' : 'Dia útil')}</span>
     </div>`;
+
+    document.getElementById('modalConteudo').innerHTML = html;
+    document.getElementById('modalDia').classList.remove('hide');
+  } catch (err) {
+    console.error('Erro ao abrir modal:', err);
+    fecharModalDia();
   }
-
-  // Horas extra
-  if (horasDia) {
-    const vh = conf.valorHora;
-    const h25 = horasDia.h25 || 0;
-    const h375 = horasDia.h375 || 0;
-    const h50 = horasDia.h50 || 0;
-    const totalH = h25 + h375 + h50;
-    const euros = h25*vh*1.25 + h375*vh*1.375 + h50*vh*1.50;
-
-    html += `<div class="info-linha"><span>Horas extra</span><span>${totalH}h</span></div>`;
-    if (h25 > 0) html += `<div class="info-linha"><span>· 25%</span><span>${h25}h</span></div>`;
-    if (h375 > 0) html += `<div class="info-linha"><span>· 37,5%</span><span>${h375}h</span></div>`;
-    if (h50 > 0) html += `<div class="info-linha"><span>· 50%</span><span>${h50}h</span></div>`;
-    html += `<div class="info-linha"><span>Valor</span><span><b>${euros.toFixed(2)} €</b></span></div>`;
-  } else {
-    html += `<div class="info-linha"><span>Horas extra</span><span>—</span></div>`;
-  }
-
-  // Dia da semana (útil/fim de semana)
-  html += `<div class="info-linha">
-    <span>Tipo de dia</span>
-    <span>${ehFimDeSemana(d) ? 'Fim de semana' : (feriado ? 'Feriado' : 'Dia útil')}</span>
-  </div>`;
-
-  document.getElementById('modalConteudo').innerHTML = html;
-  document.getElementById('modalDia').classList.remove('hide');
 }
 
-function fecharModalDia(event) {
-  if (event && event.target && event.target.id !== 'modalDia') return;
-  document.getElementById('modalDia').classList.add('hide');
+function fecharModalDia() {
+  const m = document.getElementById('modalDia');
+  if (m) m.classList.add('hide');
+  const c = document.getElementById('modalConteudo');
+  if (c) c.innerHTML = '';
 }
 
 /* ============================================================
