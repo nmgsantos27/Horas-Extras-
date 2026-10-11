@@ -481,10 +481,13 @@
     inset: 0;
     background: rgba(0,0,0,.5);
     z-index: 500;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     padding: 16px;
+  }
+  #modalDia.ativo {
+    display: flex;
   }
   #modalDia .caixa {
     background: var(--card);
@@ -945,9 +948,9 @@
   <button id="btnInstalar" class="hide" onclick="instalarApp()">📲 Instalar app</button>
 </div>
 
-<!-- ===== MODAL DE DIA ===== -->
-<div id="modalDia" class="hide">
-  <div class="caixa" onclick="event.stopPropagation()">
+<!-- ===== MODAL DE DIA (começa sem conteúdo e sem classes) ===== -->
+<div id="modalDia">
+  <div class="caixa">
     <h3 id="modalTitulo">Detalhes do dia</h3>
     <div id="modalConteudo"></div>
     <button class="sec" onclick="fecharModalDia()">Fechar</button>
@@ -1307,6 +1310,9 @@ function comecarApp() {
 window.onload = async () => {
   await carregarTabelasIRS();
   carregarDadosLocais();
+  // Garantir que o modal começa fechado
+  document.getElementById('modalDia').classList.remove('ativo');
+
   const jaConfigurado = localStorage.getItem(LS.configurado) === 'true';
   if (!jaConfigurado) {
     mostrarBoasVindas();
@@ -1517,9 +1523,6 @@ function guardarConfigTurnos() {
   renderMes();
 }
 
-/* ============================================================
-   EXCEÇÕES
-   ============================================================ */
 function adicionarExcecao() {
   const dataExc = document.getElementById('exc_data').value;
   if (!dataExc) return alert('Escolhe a segunda-feira da semana');
@@ -1644,7 +1647,7 @@ function abrirModalDia(dataISO) {
     </div>`;
 
     document.getElementById('modalConteudo').innerHTML = html;
-    document.getElementById('modalDia').classList.remove('hide');
+    document.getElementById('modalDia').classList.add('ativo');
   } catch (err) {
     console.error('Erro ao abrir modal:', err);
     fecharModalDia();
@@ -1653,7 +1656,7 @@ function abrirModalDia(dataISO) {
 
 function fecharModalDia() {
   const m = document.getElementById('modalDia');
-  if (m) m.classList.add('hide');
+  if (m) m.classList.remove('ativo');
   const c = document.getElementById('modalConteudo');
   if (c) c.innerHTML = '';
 }
