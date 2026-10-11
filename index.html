@@ -118,7 +118,6 @@
     font-size: 11px; border-radius: 5px;
   }
 
-  /* ===== TABS ===== */
   .tabs {
     display: flex;
     gap: 5px;
@@ -431,9 +430,7 @@
     overflow: hidden;
     min-width: 0;
   }
-  .cal-dia.vazio {
-    background: transparent;
-  }
+  .cal-dia.vazio { background: transparent; }
   .cal-dia.a {
     background: var(--turno-a-bg);
     color: var(--turno-a-texto);
@@ -460,6 +457,19 @@
   .cal-dia.hoje {
     border-color: var(--azul);
   }
+  .cal-dia.feriado {
+    border-color: var(--amarelo-texto);
+  }
+  .cal-dia.feriado .mini-turno.mini-feriado {
+    background: var(--amarelo-bg);
+    color: var(--amarelo-texto);
+    padding: 1px 3px;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 7.5px;
+    max-width: 100%;
+    opacity: 1;
+  }
   .cal-dia.ferias {
     opacity: .5;
   }
@@ -485,7 +495,6 @@
     flex-shrink: 0;
   }
 
-  /* Próximas semanas */
   .semana-linha {
     display: flex;
     justify-content: space-between;
@@ -501,9 +510,6 @@
 </head>
 <body>
 
-<!-- ============================================================
-     ECRÃ DE BOAS-VINDAS
-     ============================================================ -->
 <div id="ecraBoasVindas" class="hide">
   <div class="topo">
     <h1>📅 Banco de Horas</h1>
@@ -560,7 +566,6 @@
   <button class="verde" onclick="comecarApp()">✅ Começar a usar</button>
 </div>
 
-<!-- ===== APP NORMAL ===== -->
 <div id="appPrincipal" class="hide">
 
   <h1>📅 Banco de Horas</h1>
@@ -572,7 +577,6 @@
     <button id="tabConf" onclick="mudarTab('conf')">Config</button>
   </div>
 
-  <!-- ===== MÊS ===== -->
   <div id="vistaMes">
     <div class="card">
       <label>Mês / Ano</label>
@@ -643,7 +647,6 @@
     </div>
   </div>
 
-  <!-- ===== TURNOS ===== -->
   <div id="vistaTurnos" class="hide">
     <div class="card">
       <label>Mês / Ano</label>
@@ -656,6 +659,7 @@
       <div class="legenda-turnos">
         <span><span class="quadrado" style="background:var(--turno-a-bg)"></span><span id="legendaA">Turno A</span></span>
         <span><span class="quadrado" style="background:var(--turno-b-bg)"></span><span id="legendaB">Turno B</span></span>
+        <span><span class="quadrado" style="background:var(--amarelo-bg);border:1px solid var(--amarelo-texto)"></span>Feriado</span>
       </div>
     </div>
 
@@ -714,7 +718,6 @@
     </div>
   </div>
 
-  <!-- ===== HISTÓRICO ===== -->
   <div id="vistaHist" class="hide">
     <div class="card">
       <h2 style="margin-top:0">Histórico</h2>
@@ -722,7 +725,6 @@
     </div>
   </div>
 
-  <!-- ===== CONFIG ===== -->
   <div id="vistaConf" class="hide">
     <div class="card">
       <h2 style="margin-top:0">Dados base</h2>
@@ -986,15 +988,15 @@ function ehFeriado(dataISO) {
 
 function feriadoNome(dataISO) {
   const nomes = {
-    '2026-01-01': 'Ano Novo', '2026-04-03': 'Sexta-feira Santa',
-    '2026-04-05': 'Páscoa', '2026-04-25': 'Dia da Liberdade',
-    '2026-05-01': 'Dia do Trabalhador', '2026-06-04': 'Corpo de Deus',
-    '2026-06-10': 'Dia de Portugal', '2026-08-15': 'Assunção',
-    '2026-10-05': 'Implantação da República', '2026-11-01': 'Todos os Santos',
-    '2026-12-01': 'Restauração', '2026-12-08': 'Imaculada Conceição',
+    '2026-01-01': 'Ano Novo', '2026-04-03': 'Sexta Santa',
+    '2026-04-05': 'Páscoa', '2026-04-25': 'Liberdade',
+    '2026-05-01': 'Trabalhador', '2026-06-04': 'Corpo de Deus',
+    '2026-06-10': 'Portugal', '2026-08-15': 'Assunção',
+    '2026-10-05': 'República', '2026-11-01': 'Todos os Santos',
+    '2026-12-01': 'Restauração', '2026-12-08': 'Imaculada',
     '2026-12-25': 'Natal'
   };
-  if (dataISO === conf.feriadoMunicipalData) return conf.feriadoMunicipalNome || 'Feriado Municipal';
+  if (dataISO === conf.feriadoMunicipalData) return conf.feriadoMunicipalNome || 'Feriado Mun.';
   return nomes[dataISO] || 'Feriado';
 }
 
@@ -1382,15 +1384,22 @@ function renderTurnos() {
     const iso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const turno = turnoDoDia(iso);
     const feriasDia = ehDiaFerias(iso);
+    const feriado = ehFeriado(iso);
+    const nomeFer = feriado ? feriadoNome(iso) : '';
 
     const div = document.createElement('div');
     div.className = 'cal-dia';
     if (turno) div.classList.add(turno.codigo === 'A' ? 'a' : 'b');
     if (iso === hojeISO) div.classList.add('hoje');
     if (feriasDia) div.classList.add('ferias');
+    if (feriado) div.classList.add('feriado');
 
     let html = `<span class="num">${d}</span>`;
-    if (turno) html += `<span class="mini-turno">${turno.nome}</span>`;
+    if (feriado) {
+      html += `<span class="mini-turno mini-feriado">${nomeFer}</span>`;
+    } else if (turno) {
+      html += `<span class="mini-turno">${turno.nome}</span>`;
+    }
     div.innerHTML = html;
     cal.appendChild(div);
   }
