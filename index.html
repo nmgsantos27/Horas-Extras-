@@ -33,6 +33,10 @@
     --roxo: #7c3aed;
     --verde-bg: #ecfdf5;
     --verde-texto: #166534;
+    --turno-a-bg: #dbeafe;
+    --turno-a-texto: #1e40af;
+    --turno-b-bg: #fce7f3;
+    --turno-b-texto: #9d174d;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -55,6 +59,10 @@
       --roxo: #a78bfa;
       --verde-bg: #052e16;
       --verde-texto: #86efac;
+      --turno-a-bg: #1e3a8a;
+      --turno-a-texto: #bfdbfe;
+      --turno-b-bg: #831843;
+      --turno-b-texto: #fbcfe8;
     }
   }
 
@@ -104,10 +112,10 @@
     width: auto; padding: 4px 8px; margin: 0;
     font-size: 12px; border-radius: 6px;
   }
-  .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
   .tabs button {
     margin: 0; background: var(--azul-claro); color: var(--texto);
-    font-weight: 500; padding: 10px;
+    font-weight: 500; padding: 10px; flex: 1; min-width: 70px;
   }
   .tabs button.active { background: var(--azul); color: #fff; }
   .hide { display: none; }
@@ -204,6 +212,20 @@
     padding: 2px 6px;
     border-radius: 4px;
     font-weight: 600;
+  }
+  .dia-util .turno-tag {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .dia-util .turno-tag.a {
+    background: var(--turno-a-bg);
+    color: var(--turno-a-texto);
+  }
+  .dia-util .turno-tag.b {
+    background: var(--turno-b-bg);
+    color: var(--turno-b-texto);
   }
   .dia-util.desmarcado .data { color: var(--texto-muito-fraco); text-decoration: line-through; }
   .dia-util.ferias .data { color: var(--roxo); text-decoration: line-through; }
@@ -349,10 +371,87 @@
     font-size: 16px;
     color: var(--verde);
   }
+
+  /* ===== CALENDÁRIO DE TURNOS ===== */
+  .calendario {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .cal-cabecalho {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--texto-fraco);
+    padding: 6px 0;
+    text-transform: uppercase;
+  }
+  .cal-dia {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 2px;
+    border: 1px solid transparent;
+  }
+  .cal-dia.vazio {
+    background: transparent;
+  }
+  .cal-dia.a {
+    background: var(--turno-a-bg);
+    color: var(--turno-a-texto);
+  }
+  .cal-dia.b {
+    background: var(--turno-b-bg);
+    color: var(--turno-b-texto);
+  }
+  .cal-dia .num {
+    font-size: 14px;
+    line-height: 1;
+  }
+  .cal-dia .mini-turno {
+    font-size: 9px;
+    margin-top: 3px;
+    opacity: .85;
+    font-weight: 500;
+  }
+  .cal-dia.hoje {
+    border: 2px solid var(--azul);
+  }
+  .cal-dia.ferias {
+    opacity: .5;
+  }
+  .cal-dia.ferias .num { text-decoration: line-through; }
+
+  .legenda-turnos {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+  .legenda-turnos span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legenda-turnos .quadrado {
+    width: 14px; height: 14px;
+    border-radius: 4px;
+    display: inline-block;
+  }
 </style>
 </head>
 <body>
 
+<!-- ============================================================
+     ECRÃ DE BOAS-VINDAS
+     ============================================================ -->
 <div id="ecraBoasVindas" class="hide">
   <div class="topo">
     <h1>📅 Banco de Horas</h1>
@@ -409,16 +508,19 @@
   <button class="verde" onclick="comecarApp()">✅ Começar a usar</button>
 </div>
 
+<!-- ===== APP NORMAL ===== -->
 <div id="appPrincipal" class="hide">
 
   <h1>📅 Banco de Horas</h1>
 
   <div class="tabs">
     <button id="tabMes" class="active" onclick="mudarTab('mes')">Mês</button>
+    <button id="tabTurnos" onclick="mudarTab('turnos')">Turnos</button>
     <button id="tabHist" onclick="mudarTab('hist')">Histórico</button>
     <button id="tabConf" onclick="mudarTab('conf')">Config</button>
   </div>
 
+  <!-- ===== MÊS ===== -->
   <div id="vistaMes">
     <div class="card">
       <label>Mês / Ano</label>
@@ -489,6 +591,78 @@
     </div>
   </div>
 
+  <!-- ===== TURNOS ===== -->
+  <div id="vistaTurnos" class="hide">
+    <div class="card">
+      <label>Mês / Ano</label>
+      <input type="month" id="mesTurnos">
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Calendário de turnos</h2>
+      <div class="calendario" id="calendario"></div>
+      <div class="legenda-turnos">
+        <span><span class="quadrado" style="background:var(--turno-a-bg)"></span><span id="legendaA">Turno A</span></span>
+        <span><span class="quadrado" style="background:var(--turno-b-bg)"></span><span id="legendaB">Turno B</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Configuração dos turnos</h2>
+      <p style="font-size:12px;color:var(--texto-fraco);margin:0 0 8px">
+        Os turnos alternam automaticamente todas as semanas (segunda a domingo) a partir da data de referência.
+      </p>
+
+      <div class="row">
+        <div>
+          <label>Nome do Turno A</label>
+          <input type="text" id="conf_nomeA" value="Dia" oninput="guardarConfigTurnos()">
+        </div>
+        <div>
+          <label>Nome do Turno B</label>
+          <input type="text" id="conf_nomeB" value="Noite" oninput="guardarConfigTurnos()">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <div>
+          <label>Início A</label>
+          <input type="time" id="conf_inicioA" value="08:00" oninput="guardarConfigTurnos()">
+        </div>
+        <div>
+          <label>Fim A</label>
+          <input type="time" id="conf_fimA" value="17:00" oninput="guardarConfigTurnos()">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <div>
+          <label>Início B</label>
+          <input type="time" id="conf_inicioB" value="17:00" oninput="guardarConfigTurnos()">
+        </div>
+        <div>
+          <label>Fim B</label>
+          <input type="time" id="conf_fimB" value="01:00" oninput="guardarConfigTurnos()">
+        </div>
+      </div>
+
+      <label style="margin-top:12px">Data de referência (uma segunda-feira)</label>
+      <input type="date" id="conf_dataRef" oninput="guardarConfigTurnos()">
+
+      <label>Qual o turno nessa semana?</label>
+      <select id="conf_turnoInicial" oninput="guardarConfigTurnos()">
+        <option value="A">Turno A</option>
+        <option value="B">Turno B</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Próximas 8 semanas</h2>
+      <div id="proximasSemanas"></div>
+    </div>
+  </div>
+
+  <!-- ===== HISTÓRICO ===== -->
   <div id="vistaHist" class="hide">
     <div class="card">
       <h2 style="margin-top:0">Histórico</h2>
@@ -496,6 +670,7 @@
     </div>
   </div>
 
+  <!-- ===== CONFIG ===== -->
   <div id="vistaConf" class="hide">
     <div class="card">
       <h2 style="margin-top:0">Dados base</h2>
@@ -677,10 +852,12 @@ const LS = {
   conf: 'bh_conf',
   diasTrabalhados: 'bh_dias_trab',
   ferias: 'bh_ferias',
+  turnos: 'bh_turnos',
   configurado: 'bh_configurado'
 };
 
 let conf = {};
+let confTurnos = {};
 let dias = {};
 let diasDesmarcados = [];
 let ferias = [];
@@ -703,6 +880,18 @@ function carregarDadosLocais() {
   }, conf);
 
   valorHoraManual = conf.valorHoraManual || false;
+
+  confTurnos = JSON.parse(localStorage.getItem(LS.turnos) || '{}');
+  confTurnos = Object.assign({
+    nomeA: 'Dia',
+    nomeB: 'Noite',
+    inicioA: '08:00',
+    fimA: '17:00',
+    inicioB: '17:00',
+    fimB: '01:00',
+    dataRef: '',
+    turnoInicial: 'A'
+  }, confTurnos);
 
   dias = JSON.parse(localStorage.getItem(LS.dias) || '{}');
   diasDesmarcados = JSON.parse(localStorage.getItem(LS.diasTrabalhados) || '[]');
@@ -808,6 +997,47 @@ function diasUteisDoMes(mesISO) {
 }
 
 /* ============================================================
+   CÁLCULO DOS TURNOS
+   ------------------------------------------------------------
+   Alterna semanalmente a partir da data de referência.
+   Semana começa à segunda-feira.
+   ============================================================ */
+function segundaDaSemana(data) {
+  const d = new Date(data);
+  const dow = d.getDay(); // 0=domingo, 1=segunda...
+  const diff = (dow === 0 ? -6 : 1 - dow); // recuar até segunda
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function turnoDoDia(dataISO) {
+  if (!confTurnos.dataRef) return null;
+
+  const d = new Date(dataISO + 'T00:00:00');
+  const segRef = segundaDaSemana(new Date(confTurnos.dataRef + 'T00:00:00'));
+  const segDia = segundaDaSemana(d);
+
+  const msSemana = 7 * 24 * 60 * 60 * 1000;
+  const semanas = Math.round((segDia - segRef) / msSemana);
+
+  // par = turno inicial, ímpar = o outro
+  let turno;
+  if (semanas % 2 === 0) {
+    turno = confTurnos.turnoInicial;
+  } else {
+    turno = confTurnos.turnoInicial === 'A' ? 'B' : 'A';
+  }
+
+  return {
+    codigo: turno,
+    nome: turno === 'A' ? confTurnos.nomeA : confTurnos.nomeB,
+    inicio: turno === 'A' ? confTurnos.inicioA : confTurnos.inicioB,
+    fim: turno === 'A' ? confTurnos.fimA : confTurnos.fimB
+  };
+}
+
+/* ============================================================
    CLASSIFICAÇÃO DE HORAS
    ============================================================ */
 function classificarHoras(dataISO, horasTotal) {
@@ -889,6 +1119,13 @@ function comecarApp() {
   conf.valorHoraManual = false;
   valorHoraManual = false;
 
+  // data de referência por defeito: segunda-feira da semana atual
+  if (!confTurnos.dataRef) {
+    const seg = segundaDaSemana(new Date());
+    confTurnos.dataRef = formatarData(seg);
+    salvarConfTurnos();
+  }
+
   selecionarTabela(situacao);
   salvarConf();
   localStorage.setItem(LS.configurado, 'true');
@@ -897,6 +1134,7 @@ function comecarApp() {
   document.getElementById('appPrincipal').classList.remove('hide');
 
   preencherCamposApp();
+  preencherCamposTurnos();
   renderTabelaInfo();
   atualizarPreview();
   renderFerias();
@@ -916,6 +1154,7 @@ window.onload = async () => {
     selecionarTabela(conf.situacao);
     document.getElementById('appPrincipal').classList.remove('hide');
     preencherCamposApp();
+    preencherCamposTurnos();
     renderTabelaInfo();
     atualizarPreview();
     renderFerias();
@@ -927,6 +1166,7 @@ window.onload = async () => {
 function preencherCamposApp() {
   const hoje = new Date();
   document.getElementById('mesAtual').value = hoje.toISOString().slice(0,7);
+  document.getElementById('mesTurnos').value = hoje.toISOString().slice(0,7);
   document.getElementById('data').value = hoje.toISOString().slice(0,10);
   document.getElementById('feriasDe').value = hoje.toISOString().slice(0,10);
   document.getElementById('feriasAte').value = hoje.toISOString().slice(0,10);
@@ -946,21 +1186,36 @@ function preencherCamposApp() {
   document.getElementById('valorAli').value  = conf.valorAli;
 
   document.getElementById('mesAtual').onchange = renderMes;
+  document.getElementById('mesTurnos').onchange = renderTurnos;
   document.getElementById('valorHora').onchange = e => { conf.valorHora = +e.target.value; salvarConf(); renderMes(); };
   document.getElementById('valorAli').onchange  = e => { conf.valorAli  = +e.target.value; salvarConf(); renderMes(); };
+}
+
+function preencherCamposTurnos() {
+  document.getElementById('conf_nomeA').value = confTurnos.nomeA;
+  document.getElementById('conf_nomeB').value = confTurnos.nomeB;
+  document.getElementById('conf_inicioA').value = confTurnos.inicioA;
+  document.getElementById('conf_fimA').value = confTurnos.fimA;
+  document.getElementById('conf_inicioB').value = confTurnos.inicioB;
+  document.getElementById('conf_fimB').value = confTurnos.fimB;
+  document.getElementById('conf_dataRef').value = confTurnos.dataRef;
+  document.getElementById('conf_turnoInicial').value = confTurnos.turnoInicial;
+  document.getElementById('legendaA').textContent = `${confTurnos.nomeA} (${confTurnos.inicioA}–${confTurnos.fimA})`;
+  document.getElementById('legendaB').textContent = `${confTurnos.nomeB} (${confTurnos.inicioB}–${confTurnos.fimB})`;
 }
 
 /* ============================================================
    TABS
    ============================================================ */
 function mudarTab(t) {
-  ['mes','hist','conf'].forEach(x => {
+  ['mes','turnos','hist','conf'].forEach(x => {
     document.getElementById('vista' + x.charAt(0).toUpperCase() + x.slice(1))
       .classList.toggle('hide', x !== t);
     document.getElementById('tab' + x.charAt(0).toUpperCase() + x.slice(1))
       .classList.toggle('active', x === t);
   });
   if (t === 'hist') renderHist();
+  if (t === 'turnos') renderTurnos();
 }
 
 /* ============================================================
@@ -979,8 +1234,12 @@ function atualizarPreview() {
   const feriado = ehFeriado(dataISO);
   const fimSemana = ehFimDeSemana(d);
 
+  // Mostrar o turno desse dia
+  const t = turnoDoDia(dataISO);
+  const turnoTxt = t ? ` · Turno: <b>${t.nome}</b> (${t.inicio}–${t.fim})` : '';
+
   if (horas <= 0) {
-    div.innerHTML = `<b>${dataFmt}</b> (${nomeDia})${feriado ? ' — <b>' + feriadoNome(dataISO) + '</b>' : ''}<br>Introduz as horas para ver a classificação.`;
+    div.innerHTML = `<b>${dataFmt}</b> (${nomeDia})${feriado ? ' — <b>' + feriadoNome(dataISO) + '</b>' : ''}${turnoTxt}<br>Introduz as horas para ver a classificação.`;
     return;
   }
 
@@ -990,7 +1249,7 @@ function atualizarPreview() {
   else if (c.tipo === '25') detalhe = `🟢 ${horas}h a <b>25%</b> (1ª hora em dia útil)`;
   else detalhe = `🟢 1h a <b>25%</b> + ${c.h375}h a <b>37,5%</b> (dia útil)`;
 
-  div.innerHTML = `<b>${dataFmt}</b> (${nomeDia})${feriado ? ' — <b>' + feriadoNome(dataISO) + '</b>' : ''}<br>${detalhe}`;
+  div.innerHTML = `<b>${dataFmt}</b> (${nomeDia})${feriado ? ' — <b>' + feriadoNome(dataISO) + '</b>' : ''}${turnoTxt}<br>${detalhe}`;
 }
 
 /* ============================================================
@@ -1008,6 +1267,7 @@ function adicionarFerias() {
   salvarFerias();
   renderFerias();
   renderMes();
+  renderTurnos();
 }
 
 function apagarFerias(idx) {
@@ -1016,6 +1276,7 @@ function apagarFerias(idx) {
   salvarFerias();
   renderFerias();
   renderMes();
+  renderTurnos();
 }
 
 function renderFerias() {
@@ -1041,7 +1302,7 @@ function renderFerias() {
 function salvarFerias() { localStorage.setItem(LS.ferias, JSON.stringify(ferias)); }
 
 /* ============================================================
-   GUARDAR / EDITAR / APAGAR
+   GUARDAR / EDITAR / APAGAR DIAS
    ============================================================ */
 function guardarDia() {
   const data = document.getElementById('data').value;
@@ -1102,6 +1363,7 @@ function apagarDia(data) {
    ============================================================ */
 function salvarDias() { localStorage.setItem(LS.dias, JSON.stringify(dias)); }
 function salvarConf() { localStorage.setItem(LS.conf, JSON.stringify(conf)); }
+function salvarConfTurnos() { localStorage.setItem(LS.turnos, JSON.stringify(confTurnos)); }
 function salvarDiasDesmarcados() { localStorage.setItem(LS.diasTrabalhados, JSON.stringify(diasDesmarcados)); }
 
 function toggleDiaUtil(dataISO) {
@@ -1111,6 +1373,108 @@ function toggleDiaUtil(dataISO) {
   else diasDesmarcados.splice(idx, 1);
   salvarDiasDesmarcados();
   renderMes();
+}
+
+/* ============================================================
+   TURNOS — CONFIG
+   ============================================================ */
+function guardarConfigTurnos() {
+  confTurnos.nomeA = document.getElementById('conf_nomeA').value || 'Dia';
+  confTurnos.nomeB = document.getElementById('conf_nomeB').value || 'Noite';
+  confTurnos.inicioA = document.getElementById('conf_inicioA').value;
+  confTurnos.fimA = document.getElementById('conf_fimA').value;
+  confTurnos.inicioB = document.getElementById('conf_inicioB').value;
+  confTurnos.fimB = document.getElementById('conf_fimB').value;
+  confTurnos.dataRef = document.getElementById('conf_dataRef').value;
+  confTurnos.turnoInicial = document.getElementById('conf_turnoInicial').value;
+
+  salvarConfTurnos();
+  document.getElementById('legendaA').textContent = `${confTurnos.nomeA} (${confTurnos.inicioA}–${confTurnos.fimA})`;
+  document.getElementById('legendaB').textContent = `${confTurnos.nomeB} (${confTurnos.inicioB}–${confTurnos.fimB})`;
+  renderTurnos();
+  renderMes();
+}
+
+/* ============================================================
+   TURNOS — CALENDÁRIO
+   ============================================================ */
+function renderTurnos() {
+  const mesISO = document.getElementById('mesTurnos').value;
+  if (!mesISO) return;
+
+  const [ano, mes] = mesISO.split('-').map(Number);
+  const cal = document.getElementById('calendario');
+  cal.innerHTML = '';
+
+  // Cabeçalho
+  ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].forEach(d => {
+    const div = document.createElement('div');
+    div.className = 'cal-cabecalho';
+    div.textContent = d;
+    cal.appendChild(div);
+  });
+
+  // Primeiro dia do mês
+  const primeiro = new Date(ano, mes - 1, 1);
+  const dowPrimeiro = primeiro.getDay(); // 0=domingo
+  const offset = (dowPrimeiro === 0 ? 6 : dowPrimeiro - 1); // seg=0
+
+  // Células vazias antes
+  for (let i = 0; i < offset; i++) {
+    const div = document.createElement('div');
+    div.className = 'cal-dia vazio';
+    cal.appendChild(div);
+  }
+
+  // Dias do mês
+  const ultimoDia = new Date(ano, mes, 0).getDate();
+  const hojeISO = formatarData(new Date());
+
+  for (let d = 1; d <= ultimoDia; d++) {
+    const iso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const turno = turnoDoDia(iso);
+    const ferias = ehDiaFerias(iso);
+
+    const div = document.createElement('div');
+    div.className = 'cal-dia';
+    if (turno) div.classList.add(turno.codigo === 'A' ? 'a' : 'b');
+    if (iso === hojeISO) div.classList.add('hoje');
+    if (ferias) div.classList.add('ferias');
+
+    let html = `<span class="num">${d}</span>`;
+    if (turno) html += `<span class="mini-turno">${turno.nome}</span>`;
+    if (ferias) html += `<span class="mini-turno">férias</span>`;
+
+    div.innerHTML = html;
+    cal.appendChild(div);
+  }
+
+  // Próximas 8 semanas
+  const listaSemanas = document.getElementById('proximasSemanas');
+  listaSemanas.innerHTML = '';
+
+  const segAtual = segundaDaSemana(new Date());
+  for (let i = 0; i < 8; i++) {
+    const seg = new Date(segAtual);
+    seg.setDate(seg.getDate() + i * 7);
+    const dom = new Date(seg);
+    dom.setDate(dom.getDate() + 6);
+
+    const segISO = formatarData(seg);
+    const turno = turnoDoDia(segISO);
+
+    const div = document.createElement('div');
+    div.className = 'dia';
+    div.innerHTML = `
+      <span class="info">
+        <b>${seg.getDate()}/${seg.getMonth()+1}</b> a <b>${dom.getDate()}/${dom.getMonth()+1}</b>
+      </span>
+      <span>
+        ${turno ? `<span class="turno-tag ${turno.codigo === 'A' ? 'a' : 'b'}">${turno.nome} (${turno.inicio}–${turno.fim})</span>` : ''}
+      </span>
+    `;
+    listaSemanas.appendChild(div);
+  }
 }
 
 /* ============================================================
@@ -1124,13 +1488,7 @@ function nomeMes(mesISO) {
 }
 
 /* ============================================================
-   IRS — Conforme recibo real
-   ------------------------------------------------------------
-   1. IRS base = Math.floor(IRS calculado pela tabela)
-   2. Taxa efetiva = IRS base arredondado ÷ ordenado base
-   3. Taxa horas extra = taxa efetiva × 50%
-   4. IRS horas extra = horas extra × taxa horas extra (SEM arredondar)
-   5. IRS total = IRS base + IRS horas extra (SEM arredondar)
+   IRS
    ============================================================ */
 function calcularIRSSobreBase(baseTributavel) {
   if (!TABELA_ATUAL || !TABELA_ATUAL.escaloes.length) {
@@ -1167,12 +1525,10 @@ function calcularIRSSobreBase(baseTributavel) {
 }
 
 function calcularIRS(baseTributavel, totalExtra) {
-  // 1. IRS do ordenado base (arredondado para baixo)
   const rBase = calcularIRSSobreBase(baseTributavel);
   const irsBase = rBase.irsBase;
   const taxaEfetiva = rBase.taxaEfetiva;
 
-  // 2. IRS das horas extra (50% da taxa efetiva, SEM arredondar)
   let irsExtra = 0;
   let taxaExtra = 0;
   if (totalExtra > 0 && taxaEfetiva > 0) {
@@ -1180,11 +1536,8 @@ function calcularIRS(baseTributavel, totalExtra) {
     irsExtra = totalExtra * taxaExtra;
   }
 
-  // 3. Total: SEM arredondamento final
-  const irsTotal = irsBase + irsExtra;
-
   return {
-    irs: irsTotal,
+    irs: irsBase + irsExtra,
     irsBase: irsBase,
     irsExtra: irsExtra,
     taxaEfetivaBase: taxaEfetiva,
@@ -1197,7 +1550,6 @@ function calcularIRS(baseTributavel, totalExtra) {
 }
 
 function calcularSS(baseTributavel, totalExtra) {
-  // SS: 11% sobre o ordenado base + 11% sobre o valor total das horas extra
   return (baseTributavel + totalExtra) * (conf.ssTaxa / 100);
 }
 
@@ -1222,12 +1574,14 @@ function renderMes() {
     const desmarcado = diasDesmarcados.includes(iso) || feriasDia;
     if (!desmarcado) trabalhados++;
 
+    const t = turnoDoDia(iso);
+
     const div = document.createElement('div');
     div.className = 'dia-util' + (desmarcado ? ' desmarcado' : '') + (feriasDia ? ' ferias' : '');
     div.innerHTML = `
       <input type="checkbox" ${desmarcado ? '' : 'checked'} ${feriasDia ? 'disabled' : ''}
         onchange="toggleDiaUtil('${iso}')">
-      <span class="data">${d}/${m} — ${new Date(iso + 'T00:00:00').toLocaleDateString('pt-PT', { weekday: 'short' })}</span>
+      <span class="data">${d}/${m} — ${new Date(iso + 'T00:00:00').toLocaleDateString('pt-PT', { weekday: 'short' })}${t ? ' (' + t.nome + ')' : ''}</span>
       ${feriasDia ? '<span class="tag">FÉRIAS</span>' : ''}
       ${ehFeriado(iso) ? `<span class="feriado">${feriadoNome(iso)}</span>` : ''}
     `;
@@ -1279,7 +1633,6 @@ function renderMes() {
   const alimentacao = trabalhados * va;
   const totalAbonos = base + totalExtra + alimentacao;
 
-  // IRS: retenção autónoma
   const calcIRS = calcularIRS(base, totalExtra);
   const irs = calcIRS.irs;
   const ss  = calcularSS(base, totalExtra);
@@ -1444,6 +1797,7 @@ function guardarConf() {
   renderTabelaInfo();
   renderMes();
   renderHist();
+  renderTurnos();
 }
 
 /* ============================================================
@@ -1451,9 +1805,10 @@ function guardarConf() {
    ============================================================ */
 function fazerBackup() {
   const dados = {
-    versao: 1,
+    versao: 2,
     data: new Date().toISOString(),
     conf: conf,
+    confTurnos: confTurnos,
     dias: dias,
     diasDesmarcados: diasDesmarcados,
     ferias: ferias
@@ -1487,6 +1842,7 @@ function carregarBackup(event) {
       if (!dados || typeof dados !== 'object') throw new Error('Ficheiro inválido');
 
       if (dados.conf) { conf = Object.assign(conf, dados.conf); salvarConf(); }
+      if (dados.confTurnos) { confTurnos = Object.assign(confTurnos, dados.confTurnos); salvarConfTurnos(); }
       if (dados.dias) { dias = dados.dias; salvarDias(); }
       if (dados.diasDesmarcados) { diasDesmarcados = dados.diasDesmarcados; salvarDiasDesmarcados(); }
       if (dados.ferias) { ferias = dados.ferias; salvarFerias(); }
@@ -1500,10 +1856,12 @@ function carregarBackup(event) {
       document.getElementById('appPrincipal').classList.remove('hide');
 
       preencherCamposApp();
+      preencherCamposTurnos();
       renderTabelaInfo();
       renderFerias();
       renderMes();
       renderHist();
+      renderTurnos();
       alert('Backup carregado com sucesso!');
     } catch (err) {
       alert('Erro ao carregar o backup:\n' + err.message);
@@ -1521,6 +1879,7 @@ function apagarTudo() {
   localStorage.removeItem(LS.diasTrabalhados);
   localStorage.removeItem(LS.ferias);
   localStorage.removeItem(LS.conf);
+  localStorage.removeItem(LS.turnos);
   localStorage.removeItem(LS.configurado);
 
   alert('Dados apagados. A app vai recomeçar.');
