@@ -884,6 +884,15 @@
     </div>
 
     <div class="card">
+      <h2 style="margin-top:0">Fecho das Horas Extra</h2>
+      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
+        Ex.: se fechar a 24, as horas do dia 25 em diante contam para o mês seguinte.
+      </p>
+      <label>Dia de fecho</label>
+      <input type="number" id="diaFecho" step="1" min="1" max="31" value="31">
+    </div>
+
+    <div class="card">
       <h2 style="margin-top:0">Feriado Municipal</h2>
       <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
         Configura o feriado da tua cidade (ex.: Sintra = 29 junho).
@@ -948,7 +957,7 @@
   <button id="btnInstalar" class="hide" onclick="instalarApp()">📲 Instalar app</button>
 </div>
 
-<!-- ===== MODAL DE DIA (começa sem conteúdo e sem classes) ===== -->
+<!-- ===== MODAL DE DIA ===== -->
 <div id="modalDia">
   <div class="caixa">
     <h3 id="modalTitulo">Detalhes do dia</h3>
@@ -1056,7 +1065,7 @@ function carregarDadosLocais() {
   conf = Object.assign({
     ordenadoBase: 0, valorHora: 0, valorAli: 0, horasSemanais: 40,
     valorHoraManual: false, diasUteis: 22, situacao: 'I',
-    dependentes: 0, ssTaxa: 11,
+    dependentes: 0, ssTaxa: 11, diaFecho: 31,
     feriadoMunicipalData: '', feriadoMunicipalNome: ''
   }, conf);
 
@@ -1284,6 +1293,7 @@ function comecarApp() {
   conf.feriadoMunicipalNome = feriadoNome;
   conf.valorHoraManual = false;
   valorHoraManual = false;
+  conf.diaFecho = 31; // default
 
   if (!confTurnos.dataRef) {
     const seg = segundaDaSemana(new Date());
@@ -1310,6 +1320,7 @@ function comecarApp() {
 window.onload = async () => {
   await carregarTabelasIRS();
   carregarDadosLocais();
+  
   // Garantir que o modal começa fechado
   document.getElementById('modalDia').classList.remove('ativo');
 
@@ -1345,6 +1356,7 @@ function preencherCamposApp() {
   document.getElementById('situacao').value      = conf.situacao || 'I';
   document.getElementById('dependentes').value   = conf.dependentes;
   document.getElementById('ssTaxa').value        = conf.ssTaxa;
+  document.getElementById('diaFecho').value      = conf.diaFecho || 31;
   document.getElementById('feriadoMunicipalData').value = conf.feriadoMunicipalData;
   document.getElementById('feriadoMunicipalNome').value = conf.feriadoMunicipalNome;
 
@@ -1523,6 +1535,9 @@ function guardarConfigTurnos() {
   renderMes();
 }
 
+/* ============================================================
+   EXCEÇÕES
+   ============================================================ */
 function adicionarExcecao() {
   const dataExc = document.getElementById('exc_data').value;
   if (!dataExc) return alert('Escolhe a segunda-feira da semana');
@@ -1798,6 +1813,7 @@ function renderMes() {
   const vh = conf.valorHora;
   const va = conf.valorAli;
 
+  // ------ DIAS ÚTEIS (MÊS CIVIL PARA SUBSÍDIO) ------
   const uteis = diasUteisDoMes(mes);
   const listaUteis = document.getElementById('listaDiasUteis');
   listaUteis.innerHTML = '';
@@ -1827,7 +1843,28 @@ function renderMes() {
     <div class="resumo-dias"><span>Férias / faltas</span><b>${uteis.length - trabalhados}</b></div>
   `;
 
-  const doMes = Object.entries(dias).filter(([d]) => d.startsWith(mes)).sort();
+  // ------ HORAS EXTRA (PERÍODO DE FECHO) ------
+  const fecho = conf.diaFecho || 31;
+  const [anoMes, mesNum] = mes.split('-').map(Number);
+  
+  // Data inicial do período
+  let dataInicioObj = new Date(anoMes, mesNum - 2, fecho + 1);
+  let dataFimObj = new Date(anoMes, mesNum - 1, fecho);
+
+  // Se o fecho for 31 e o mês atual só tiver 30 dias, ajusta para o último dia
+  const ultimoDiaMesObj = new Date(anoMes, mesNum, 0).getDate();
+  if (fecho > ultimoDiaMesObj && fecho >= 28) {
+      dataFimObj = new Date(anoMes, mesNum - 1, ultimoDiaMesObj);
+  }
+
+  const inicioISO = formatarData(dataInicioObj);
+  const fimISO = formatarData(dataFimObj);
+
+  // Filtrar os dias extra pelo período
+  const doMes = Object.entries(dias)
+    .filter(([d]) => d >= inicioISO && d <= fimISO)
+    .sort();
+
   let t25 = 0, t375 = 0, t50 = 0, totalHoras = 0;
   const lista = document.getElementById('listaDias');
   lista.innerHTML = doMes.length ? '' : '<p style="color:var(--texto-muito-fraco);font-size:13px">Sem registos.</p>';
@@ -1905,32 +1942,55 @@ function renderMes() {
 }
 
 function renderHist() {
-  const meses = {};
+  const fecho = conf.diaFecho || 31;
+  
+  // Vamos agrupar os registos pelos meses de processamento (fecho)
+  const mesesAgrupados = {};
+  
   Object.entries(dias).forEach(([data, h]) => {
-    const mes = data.slice(0,7);
-    if (!meses[mes]) meses[mes] = { h25:0, h375:0, h50:0, dias:0 };
-    meses[mes].h25 += h.h25 || 0;
-    meses[mes].h375 += h.h375 || 0;
-    meses[mes].h50 += h.h50 || 0;
-    meses[mes].dias++;
+    const dObj = new Date(data + 'T00:00:00');
+    let ano = dObj.getFullYear();
+    let mes = dObj.getMonth() + 1;
+    let dia = dObj.getDate();
+
+    // Se o dia for maior que o fecho, conta para o próximo mês
+    if (dia > fecho) {
+      mes++;
+      if (mes > 12) {
+        mes = 1;
+        ano++;
+      }
+    }
+    
+    const mesChave = `${ano}-${String(mes).padStart(2, '0')}`;
+    if (!mesesAgrupados[mesChave]) {
+      mesesAgrupados[mesChave] = { h25:0, h375:0, h50:0, dias:0 };
+    }
+    mesesAgrupados[mesChave].h25 += h.h25 || 0;
+    mesesAgrupados[mesChave].h375 += h.h375 || 0;
+    mesesAgrupados[mesChave].h50 += h.h50 || 0;
+    mesesAgrupados[mesChave].dias++;
   });
 
   const vh = conf.valorHora;
   const va = conf.valorAli;
   const base = conf.ordenadoBase;
   const lista = document.getElementById('listaHist');
-  const chaves = Object.keys(meses).sort().reverse();
+  const chaves = Object.keys(mesesAgrupados).sort().reverse();
 
   if (!chaves.length) { lista.innerHTML = '<p style="color:var(--texto-muito-fraco)">Sem histórico.</p>'; return; }
 
   let html = '';
   chaves.forEach(mes => {
-    const m = meses[mes];
+    const m = mesesAgrupados[mes];
     const totalH = m.h25 + m.h375 + m.h50;
     const euros  = m.h25*vh*1.25 + m.h375*vh*1.375 + m.h50*vh*1.5;
+    
+    // Para o subsídio, usamos os dias úteis normais do mês (aproximação)
     const uteis = diasUteisDoMes(mes);
     const trabalhados = uteis.filter(iso => !diasDesmarcados.includes(iso) && !ehDiaFerias(iso)).length;
     const ali = trabalhados * va;
+    
     const bruto  = base + euros + ali;
     const irs    = calcularIRS(base, euros).irs;
     const ss     = calcularSS(base, euros);
@@ -1938,7 +1998,7 @@ function renderHist() {
 
     html += `
       <div class="dia">
-        <span>${nomeMes(mes)} <small style="color:var(--texto-muito-fraco)">(${trabalhados}d · ${totalH.toFixed(2)}h)</small></span>
+        <span>${nomeMes(mes)} <small style="color:var(--texto-muito-fraco)">(${totalH.toFixed(2)}h)</small></span>
         <span><b>${liq.toFixed(2)} €</b></span>
       </div>`;
   });
@@ -1981,6 +2041,7 @@ function guardarConf() {
   conf.valorHora    = +document.getElementById('valorHoraConf').value;
   conf.valorAli     = +document.getElementById('valorAliConf').value;
   conf.diasUteis    = +document.getElementById('diasUteis').value;
+  conf.diaFecho     = +document.getElementById('diaFecho').value || 31;
   conf.situacao     = document.getElementById('situacao').value;
   conf.dependentes  = +document.getElementById('dependentes').value;
   conf.ssTaxa       = +document.getElementById('ssTaxa').value;
