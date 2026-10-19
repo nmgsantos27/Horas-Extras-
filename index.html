@@ -656,26 +656,36 @@
 
 <script>
 /* ============================================================
+   AUTO-LIMPEZA DO SERVICE WORKER ANTIGO
+   ============================================================ */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for(let registration of registrations) {
+      registration.unregister(); // Desliga o SW antigo para forçar a atualização
+    }
+  });
+}
+
+/* ============================================================
    BASE DE DADOS DE FERIADOS MUNICIPAIS 2026
-   (Para os feriados móveis, usamos as datas exatas de 2026)
    ============================================================ */
 const FERIADOS_MUNICIPAIS = {
-  "Abrantes": { data: "2026-06-10", nome: "Dia de Portugal" }, // Exemplo simplificado
+  "Abrantes": { data: "2026-06-10", nome: "Dia de Portugal" },
   "Aveiro": { data: "2026-05-12", nome: "Santa Joana" },
   "Beja": { data: "2026-05-25", nome: "Nossa Senhora ao Pé da Cruz" },
   "Braga": { data: "2026-06-24", nome: "São João" },
   "Bragança": { data: "2026-08-22", nome: "Nossa Senhora das Graças" },
-  "Castelo Branco": { data: "2026-05-01", nome: "Nossa Senhora de Mércoles" }, // Simplificado
+  "Castelo Branco": { data: "2026-05-01", nome: "Nossa Senhora de Mércoles" },
   "Coimbra": { data: "2026-07-04", nome: "Rainha Santa Isabel" },
   "Évora": { data: "2026-06-29", nome: "São Pedro" },
   "Faro": { data: "2026-09-07", nome: "Nossa Senhora do Carmo" },
-  "Guarda": { data: "2026-11-27", nome: "Nossa Senhora da Assunção" }, // Exemplo
+  "Guarda": { data: "2026-11-27", nome: "Nossa Senhora da Assunção" },
   "Leiria": { data: "2026-05-22", nome: "Nossa Senhora da Encarnação" },
   "Lisboa": { data: "2026-06-13", nome: "Santo António" },
   "Portalegre": { data: "2026-05-23", nome: "Nossa Senhora da Penha" },
   "Porto": { data: "2026-06-24", nome: "São João" },
   "Santarém": { data: "2026-03-19", nome: "São José" },
-  "Setúbal": { data: "2026-09-15", nome: "Nossa Senhora das Dores" }, // Exemplo
+  "Setúbal": { data: "2026-09-15", nome: "Nossa Senhora das Dores" },
   "Viana do Castelo": { data: "2026-08-20", nome: "Nossa Senhora da Agonia" },
   "Vila Real": { data: "2026-06-13", nome: "Santo António" },
   "Viseu": { data: "2026-09-21", nome: "São Mateus" },
@@ -696,39 +706,39 @@ const FERIADOS_MUNICIPAIS = {
   "Póvoa de Varzim": { data: "2026-06-29", nome: "São Pedro" },
   "Vila do Conde": { data: "2026-06-24", nome: "São João" },
   "Barcelos": { data: "2026-06-24", nome: "São João" },
-  "Fafe": { data: "2026-07-15", nome: "São Cristóvão" }, // Aproximado
+  "Fafe": { data: "2026-07-15", nome: "São Cristóvão" },
   "Guimarães": { data: "2026-06-24", nome: "São João" },
   "Vizela": { data: "2026-06-24", nome: "São João" },
   "Aveiro (Cidade)": { data: "2026-05-12", nome: "Santa Joana" },
-  "Ílhavo": { data: "2026-05-12", nome: "Santa Joana" }, // Aproximado
+  "Ílhavo": { data: "2026-05-12", nome: "Santa Joana" },
   "Coimbra (Cidade)": { data: "2026-07-04", nome: "Rainha Santa" },
   "Leiria (Cidade)": { data: "2026-05-22", nome: "Nossa Senhora da Encarnação" },
   "Fátima": { data: "2026-05-13", nome: "Nossa Senhora de Fátima" },
-  "Ourém": { data: "2026-06-20", nome: "Corpo de Deus" }, // Exemplo
-  "Tomar": { data: "2026-03-01", nome: "Santa Iria" }, // Exemplo
+  "Ourém": { data: "2026-06-20", nome: "Corpo de Deus" },
+  "Tomar": { data: "2026-03-01", nome: "Santa Iria" },
   "Alcobaça": { data: "2026-08-20", nome: "São Bernardo" },
   "Caldas da Rainha": { data: "2026-05-15", nome: "Nossa Senhora do Pópulo" },
   "Peniche": { data: "2026-08-15", nome: "Nossa Senhora da Boa Viagem" },
-  "Óbidos": { data: "2026-07-18", nome: "Santa Maria" }, // Exemplo
+  "Óbidos": { data: "2026-07-18", nome: "Santa Maria" },
   "Nazaré": { data: "2026-09-08", nome: "Nossa Senhora da Nazaré" },
-  "Marinha Grande": { data: "2026-06-24", nome: "São João" }, // Exemplo
-  "Porto de Mós": { data: "2026-06-24", nome: "São João" }, // Exemplo
-  "Pombal": { data: "2026-09-15", nome: "Nossa Senhora das Dores" }, // Exemplo
+  "Marinha Grande": { data: "2026-06-24", nome: "São João" },
+  "Porto de Mós": { data: "2026-06-24", nome: "São João" },
+  "Pombal": { data: "2026-09-15", nome: "Nossa Senhora das Dores" },
   "Figueira da Foz": { data: "2026-08-15", nome: "Nossa Senhora da Boa Viagem" },
-  "Cantanhede": { data: "2026-07-25", nome: "São Tiago" }, // Exemplo
-  "Mealhada": { data: "2026-09-21", nome: "São Mateus" }, // Exemplo
+  "Cantanhede": { data: "2026-07-25", nome: "São Tiago" },
+  "Mealhada": { data: "2026-09-21", nome: "São Mateus" },
   "Águeda": { data: "2026-05-25", nome: "Segunda-feira de Pentecostes" },
-  "Estarreja": { data: "2026-06-13", nome: "Santo António" }, // Exemplo
-  "Ovar": { data: "2026-07-25", nome: "São Tiago" }, // Exemplo
-  "Espinho": { data: "2026-06-16", nome: "Nossa Senhora da Ajuda" }, // Exemplo
+  "Estarreja": { data: "2026-06-13", nome: "Santo António" },
+  "Ovar": { data: "2026-07-25", nome: "São Tiago" },
+  "Espinho": { data: "2026-06-16", nome: "Nossa Senhora da Ajuda" },
   "Santa Maria da Feira": { data: "2026-01-20", nome: "São Sebastião" },
-  "Arouca": { data: "2026-05-02", nome: "Nossa Senhora da Mó" }, // Exemplo
-  "Vale de Cambra": { data: "2026-06-13", nome: "Santo António" }, // Exemplo
-  "Oliveira de Azeméis": { data: "2026-08-15", nome: "Nossa Senhora da Assunção" }, // Exemplo
-  "São João da Madeira": { data: "2026-07-29", nome: "Santa Maria" }, // Exemplo
-  "Vila Nova de Famalicão": { data: "2026-06-24", nome: "São João" }, // Exemplo
-  "Santo Tirso": { data: "2026-07-11", nome: "São Bento" }, // Exemplo
-  "Trofa": { data: "2026-07-11", nome: "São Bento" }, // Exemplo
+  "Arouca": { data: "2026-05-02", nome: "Nossa Senhora da Mó" },
+  "Vale de Cambra": { data: "2026-06-13", nome: "Santo António" },
+  "Oliveira de Azeméis": { data: "2026-08-15", nome: "Nossa Senhora da Assunção" },
+  "São João da Madeira": { data: "2026-07-29", nome: "Santa Maria" },
+  "Vila Nova de Famalicão": { data: "2026-06-24", nome: "São João" },
+  "Santo Tirso": { data: "2026-07-11", nome: "São Bento" },
+  "Trofa": { data: "2026-07-11", nome: "São Bento" },
   "Valongo (Cidade)": { data: "2026-06-24", nome: "São João" },
   "Gondomar (Cidade)": { data: "2026-06-24", nome: "São João" },
   "Vila Nova de Gaia (Cidade)": { data: "2026-06-24", nome: "São João" },
@@ -741,9 +751,6 @@ const FERIADOS_MUNICIPAIS = {
   "Cascais (Município)": { data: "2026-06-13", nome: "Santo António" }
 };
 
-/* ============================================================
-   VARIÁVEIS GLOBAIS
-   ============================================================ */
 let TABELAS = {};
 let TABELA_ATUAL = null;
 let VALOR_POR_DEPENDENTE = 21.43;
@@ -779,9 +786,6 @@ let diasDesmarcados = [];
 let ferias = [];
 let dataEmEdicao = null;
 
-/* ============================================================
-   FUNÇÕES BASE
-   ============================================================ */
 function formatarData(d) {
   const a = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -893,9 +897,6 @@ function classificarHoras(dataISO, horasTotal) {
   return { h25: 1, h375: horasTotal - 1, h50: 0, tipo: '25+375' };
 }
 
-/* ============================================================
-   FERIADOS MUNICIPAIS (PESQUISA)
-   ============================================================ */
 function carregarDatalistConcelhos() {
   const dl = document.getElementById('listaConcelhos');
   let html = '';
@@ -921,9 +922,6 @@ function conf_preencherFeriado() {
   }
 }
 
-/* ============================================================
-   INICIALIZAÇÃO E SUBSÍDIO TURNO (BOAS VINDAS)
-   ============================================================ */
 function bv_mostrarValorHora() {
   const ob = +document.getElementById('bv_ordenadoBase').value || 0;
   const hs = +document.getElementById('bv_horasSemanais').value || 0;
@@ -1529,7 +1527,6 @@ function apagarTudo() {
   localStorage.clear(); location.reload();
 }
 
-/* Guardar dados localmente */
 function salvarDias() { localStorage.setItem(LS.dias, JSON.stringify(dias)); }
 function salvarConf() { localStorage.setItem(LS.conf, JSON.stringify(conf)); }
 function salvarConfTurnos() { localStorage.setItem(LS.turnos, JSON.stringify(confTurnos)); }
