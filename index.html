@@ -240,6 +240,7 @@
     font-size: 11px; font-weight: 600;
     display: flex; flex-direction: column; align-items: center; gap: 4px;
     border-radius: 8px;
+    width: auto;
   }
   .bottom-nav button.active { color: var(--azul); }
   .bottom-nav .icon { font-size: 20px; }
@@ -1415,6 +1416,18 @@ function salvarConfTurnos() { localStorage.setItem(LS.turnos, JSON.stringify(con
 function salvarDiasDesmarcados() { localStorage.setItem(LS.diasTrabalhados, JSON.stringify(diasDesmarcados)); }
 function salvarExcecoes() { localStorage.setItem(LS.excecoes, JSON.stringify(excecoes)); }
 function salvarFerias() { localStorage.setItem(LS.ferias, JSON.stringify(ferias)); }
+
+function mudarTab(t) {
+  ['mes','turnos','ferias','hist','conf'].forEach(x => {
+    const v = document.getElementById('vista' + x.charAt(0).toUpperCase() + x.slice(1));
+    if (v) v.classList.toggle('hide', x !== t);
+    const b = document.getElementById('tab' + x.charAt(0).toUpperCase() + x.slice(1));
+    if (b) b.classList.toggle('active', x === t);
+  });
+  if (t === 'hist') renderHist();
+  if (t === 'turnos') { renderTurnos(); renderExcecoes(); }
+  if (t === 'ferias') renderFerias();
+}
 
 </script>
 </body>
