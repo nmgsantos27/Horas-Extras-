@@ -835,7 +835,6 @@ function comecarApp() {
     const dep = +document.getElementById('bv_dependentes').value || 0;
     const ss = +document.getElementById('bv_ssTaxa').value;
     
-    // Subsídio de Turno - Proteção para ler corretamente
     const tipoSTEl = document.getElementById('bv_tipoSubsTurno');
     const valSTEl = document.getElementById('bv_subsTurnoValor');
     const tipoST = tipoSTEl ? tipoSTEl.value : 'nenhum';
@@ -905,6 +904,19 @@ function preencherCamposApp() {
 
   document.getElementById('mesAtual').onchange = renderMes;
   document.getElementById('mesTurnos').onchange = renderTurnos;
+}
+
+function preencherCamposTurnos() {
+  document.getElementById('conf_nomeA').value = confTurnos.nomeA;
+  document.getElementById('conf_nomeB').value = confTurnos.nomeB;
+  document.getElementById('conf_inicioA').value = confTurnos.inicioA;
+  document.getElementById('conf_fimA').value = confTurnos.fimA;
+  document.getElementById('conf_inicioB').value = confTurnos.inicioB;
+  document.getElementById('conf_fimB').value = confTurnos.fimB;
+  document.getElementById('conf_dataRef').value = confTurnos.dataRef;
+  document.getElementById('conf_turnoInicial').value = confTurnos.turnoInicial;
+  document.getElementById('legendaA').textContent = confTurnos.nomeA;
+  document.getElementById('legendaB').textContent = confTurnos.nomeB;
 }
 
 function conf_mostrarSubsTurno() {
