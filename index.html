@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#1e3a8a" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#f1f5f9" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
 <title>Banco de Horas</title>
 
@@ -15,839 +15,401 @@
 
 <style>
   :root {
-    --bg: #f1f5f9;
+    --bg: #f8fafc;
     --card: #ffffff;
-    --texto: #1e293b;
+    --texto: #0f172a;
     --texto-suave: #475569;
-    --texto-fraco: #64748b;
-    --texto-muito-fraco: #94a3b8;
+    --texto-fraco: #94a3b8;
     --borda: #e2e8f0;
     --borda-forte: #cbd5e1;
-    --input-bg: #ffffff;
-    --azul: #1e3a8a;
-    --azul-claro: #e2e8f0;
+    --input-bg: #f8fafc;
+    --azul: #2563eb;
+    --azul-claro: #eff6ff;
+    --azul-texto: #1d4ed8;
     --verde: #16a34a;
+    --verde-bg: #f0fdf4;
     --vermelho: #dc2626;
+    --vermelho-bg: #fef2f2;
     --amarelo-bg: #fef3c7;
     --amarelo-texto: #92400e;
     --roxo: #7c3aed;
-    --verde-bg: #ecfdf5;
-    --verde-texto: #166534;
-    --turno-a-bg: #dbeafe;
-    --turno-a-texto: #1e40af;
+    --roxo-bg: #f5f3ff;
+    --turno-a-bg: #e0e7ff;
+    --turno-a-texto: #3730a3;
     --turno-b-bg: #fce7f3;
     --turno-b-texto: #9d174d;
+    --sombra: 0 4px 6px -1px rgba(0,0,0,.05), 0 2px 4px -2px rgba(0,0,0,.05);
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #0f172a;
       --card: #1e293b;
-      --texto: #e2e8f0;
+      --texto: #f8fafc;
       --texto-suave: #cbd5e1;
-      --texto-fraco: #94a3b8;
-      --texto-muito-fraco: #64748b;
+      --texto-fraco: #64748b;
       --borda: #334155;
       --borda-forte: #475569;
       --input-bg: #0f172a;
-      --azul: #60a5fa;
-      --azul-claro: #334155;
+      --azul: #3b82f6;
+      --azul-claro: #1e3a8a;
+      --azul-texto: #93c5fd;
       --verde: #4ade80;
+      --verde-bg: #052e16;
       --vermelho: #f87171;
+      --vermelho-bg: #450a0a;
       --amarelo-bg: #422006;
       --amarelo-texto: #fcd34d;
       --roxo: #a78bfa;
-      --verde-bg: #052e16;
-      --verde-texto: #86efac;
+      --roxo-bg: #2e1065;
       --turno-a-bg: #1e3a8a;
       --turno-a-texto: #bfdbfe;
       --turno-b-bg: #831843;
       --turno-b-texto: #fbcfe8;
+      --sombra: 0 4px 6px -1px rgba(0,0,0,.3);
     }
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    overflow-x: hidden;
-    max-width: 100%;
-  }
+  html, body { overflow-x: hidden; max-width: 100%; }
   body {
-    font-family: -apple-system, system-ui, sans-serif;
-    margin: 0; padding: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0; padding: 16px 16px 90px 16px; /* espaço para o menu inferior */
     background: var(--bg); color: var(--texto);
     transition: background .2s, color .2s;
     font-size: 15px;
   }
-  h1 { font-size: 19px; margin: 6px 0; }
-  h2 { font-size: 15px; margin: 12px 0 6px; color: var(--azul); }
+  
+  h1 { font-size: 22px; font-weight: 800; margin: 0 0 16px 0; letter-spacing: -0.5px; }
+  h2 { font-size: 15px; margin: 0 0 10px 0; color: var(--texto); font-weight: 700; }
+  
   .card {
-    background: var(--card); border-radius: 10px;
-    padding: 12px; margin-bottom: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    background: var(--card); border-radius: 16px;
+    padding: 16px; margin-bottom: 16px;
+    box-shadow: var(--sombra);
+    border: 1px solid var(--borda);
   }
-  label { display: block; font-size: 12.5px; margin: 6px 0 4px; color: var(--texto-suave); }
+
+  /* ===== DASHBOARD (ECRÃ PRINCIPAL) ===== */
+  .dashboard {
+    background: var(--azul); color: #fff;
+    border-radius: 20px; padding: 24px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  .dashboard::after {
+    content: ''; position: absolute;
+    top: -50%; right: -20%;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,.1);
+    border-radius: 50%;
+  }
+  .dashboard .label { font-size: 13px; opacity: 0.9; font-weight: 500; margin-bottom: 4px; }
+  .dashboard .valor { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+  .dashboard .stats {
+    display: flex; gap: 16px; margin-top: 16px;
+    border-top: 1px solid rgba(255,255,255,.2); padding-top: 16px;
+  }
+  .dashboard .stat { flex: 1; }
+  .dashboard .stat .s-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .dashboard .stat .s-valor { font-size: 16px; font-weight: 700; margin-top: 2px; }
+
+  /* ===== FORMULÁRIOS ===== */
+  label { display: block; font-size: 13px; margin: 12px 0 6px 0; color: var(--texto-suave); font-weight: 500; }
   input, select {
-    width: 100%; padding: 9px; font-size: 15px;
-    border: 1px solid var(--borda-forte); border-radius: 8px;
+    width: 100%; padding: 12px; font-size: 15px;
+    border: 1px solid var(--borda-forte); border-radius: 12px;
     background: var(--input-bg); color: var(--texto);
+    transition: border-color .2s;
   }
+  input:focus, select:focus { outline: none; border-color: var(--azul); }
+
   button {
-    width: 100%; padding: 11px; font-size: 15px;
-    border: none; border-radius: 8px;
+    width: 100%; padding: 14px; font-size: 15px;
+    border: none; border-radius: 12px;
     background: var(--azul); color: #fff; font-weight: 600;
-    margin-top: 8px;
+    margin-top: 12px;
+    transition: transform 0.1s, opacity 0.2s;
   }
-  button.sec { background: var(--texto-fraco); }
-  button.danger { background: var(--vermelho); }
-  button.aviso { background: #d97706; }
-  button.verde { background: var(--verde); }
-  .row { display: flex; gap: 6px; }
+  button:active { transform: scale(0.98); }
+  button.sec { background: var(--borda-forte); color: var(--texto); }
+  button.danger { background: var(--vermelho-bg); color: var(--vermelho); }
+  button.verde { background: var(--verde); color: #fff; }
+  button.outline { background: transparent; border: 1px solid var(--borda-forte); color: var(--texto); }
+
+  .row { display: flex; gap: 10px; }
   .row > * { flex: 1; min-width: 0; }
+
+  /* ===== RECIBO (EXTRATO) ===== */
+  .recibo .linha {
+    display: flex; justify-content: space-between;
+    padding: 10px 0; font-size: 14px;
+    border-bottom: 1px solid var(--borda);
+    gap: 8px;
+  }
+  .recibo .linha:last-child { border-bottom: none; }
+  .recibo .linha span:first-child { flex: 1; min-width: 0; color: var(--texto-suave); }
+  .recibo .linha span:last-child { white-space: nowrap; font-weight: 600; }
+  
+  .recibo .linha.abono span:last-child { color: var(--verde); }
+  .recibo .linha.desconto span:last-child { color: var(--vermelho); }
+  
+  .recibo .linha.total {
+    font-weight: 800; font-size: 16px;
+    color: var(--texto);
+    border-top: 2px solid var(--borda-forte);
+    border-bottom: none;
+    margin-top: 8px; padding-top: 12px;
+  }
+  .recibo .linha.total span:last-child { color: var(--texto); }
+
+  .recibo .subsecao {
+    font-size: 12px; font-weight: 700; color: var(--texto-fraco);
+    margin: 16px 0 4px 0; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* ===== LISTAS (DIAS E LANÇAMENTOS) ===== */
   .dia {
     display: flex; justify-content: space-between;
-    align-items: center;
-    padding: 7px 0; border-bottom: 1px solid var(--borda);
-    font-size: 13px;
-    gap: 6px;
+    align-items: center; padding: 12px 0;
+    border-bottom: 1px solid var(--borda);
+    font-size: 14px; gap: 8px;
   }
   .dia:last-child { border-bottom: none; }
   .dia .info { flex: 1; min-width: 0; }
-  .dia .botoes { display: flex; gap: 4px; flex-shrink: 0; }
+  .dia .botoes { display: flex; gap: 6px; flex-shrink: 0; }
   .dia .botoes button {
-    width: auto; padding: 4px 7px; margin: 0;
-    font-size: 11px; border-radius: 5px;
-  }
-
-  /* ===== TABS ===== */
-  .tabs {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
-    margin-bottom: 10px;
-    width: 100%;
-  }
-  .tabs button {
-    margin: 0;
-    background: var(--azul-claro); color: var(--texto);
-    font-weight: 500; padding: 9px 2px;
-    font-size: 11px;
-    white-space: nowrap;
-    width: 100%;
-    min-width: 0;
-    text-overflow: ellipsis;
-    overflow: hidden;
-  }
-  .tabs button.active { background: var(--azul); color: #fff; }
-
-  .hide { display: none !important; }
-  hr { border: none; border-top: 1px solid var(--borda); margin: 8px 0; }
-
-  .recibo {
-    background: var(--card);
-    border: 1px solid var(--borda-forte);
-    border-radius: 10px;
-    padding: 14px;
-    font-size: 13.5px;
-  }
-  .recibo h3 {
-    margin: 0 0 4px;
-    font-size: 15px;
-    text-align: center;
-    color: var(--azul);
-  }
-  .recibo .subtitulo {
-    text-align: center;
-    font-size: 11.5px;
-    color: var(--texto-fraco);
-    margin-bottom: 10px;
-  }
-  .recibo .secao {
-    font-weight: 700;
-    font-size: 12.5px;
-    color: var(--azul);
-    margin: 10px 0 5px;
-    text-transform: uppercase;
-    letter-spacing: .4px;
-  }
-  .linha {
-    display: flex;
-    justify-content: space-between;
-    padding: 3px 0;
-    font-size: 13px;
-    border-bottom: 1px dashed var(--borda);
-    gap: 8px;
-  }
-  .linha:last-child { border-bottom: none; }
-  .linha span:first-child { flex: 1; min-width: 0; }
-  .linha span:last-child { white-space: nowrap; }
-  .linha.desc span:last-child { color: var(--vermelho); }
-  .linha.total {
-    font-weight: 700;
-    color: var(--azul);
-    border-top: 1px solid var(--azul);
-    border-bottom: none;
-    margin-top: 5px;
-    padding-top: 7px;
-    font-size: 14px;
-  }
-  .linha.liquido {
-    font-weight: 800;
-    font-size: 15px;
-    background: var(--azul);
-    color: #fff;
-    border-radius: 8px;
-    padding: 9px 11px;
-    margin-top: 10px;
-    border: none;
-  }
-  .info-extra {
-    margin-top: 10px;
-    font-size: 11.5px;
-    color: var(--texto-fraco);
-    text-align: center;
-  }
-  .info-escalao {
-    margin-top: 6px;
-    font-size: 11px;
-    color: var(--texto-fraco);
-    text-align: center;
-    font-style: italic;
-    word-break: break-word;
+    width: auto; padding: 6px 10px; margin: 0;
+    font-size: 12px; border-radius: 8px;
   }
 
   .dia-util {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 0;
-    border-bottom: 1px solid var(--borda);
-    font-size: 13px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--borda);
+    font-size: 14px;
   }
   .dia-util:last-child { border-bottom: none; }
   .dia-util input[type="checkbox"] {
-    width: 18px; height: 18px;
-    accent-color: var(--azul);
-    flex-shrink: 0;
+    width: 22px; height: 22px; accent-color: var(--azul); flex-shrink: 0;
   }
-  .dia-util .data { flex: 1; min-width: 0; }
-  .dia-util .feriado {
-    font-size: 10px;
-    background: var(--amarelo-bg);
-    color: var(--amarelo-texto);
-    padding: 2px 5px;
-    border-radius: 4px;
-    font-weight: 600;
-  }
-  .dia-util .turno-tag {
-    font-size: 10px;
-    padding: 2px 5px;
-    border-radius: 4px;
-    font-weight: 600;
-  }
-  .dia-util .turno-tag.a {
-    background: var(--turno-a-bg);
-    color: var(--turno-a-texto);
-  }
-  .dia-util .turno-tag.b {
-    background: var(--turno-b-bg);
-    color: var(--turno-b-texto);
-  }
-  .dia-util.desmarcado .data { color: var(--texto-muito-fraco); text-decoration: line-through; }
+  .dia-util .data { flex: 1; min-width: 0; font-weight: 500; }
+  .dia-util.desmarcado .data { color: var(--texto-fraco); text-decoration: line-through; }
   .dia-util.ferias .data { color: var(--roxo); text-decoration: line-through; }
-  .dia-util.ferias .tag {
-    font-size: 10px;
-    background: var(--roxo);
-    color: #fff;
-    padding: 2px 5px;
-    border-radius: 4px;
-    font-weight: 600;
+  
+  .tag {
+    font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: 600;
   }
+  .tag.ferias { background: var(--roxo-bg); color: var(--roxo); }
+  .tag.feriado { background: var(--amarelo-bg); color: var(--amarelo-texto); }
+  .tag.turnoA { background: var(--turno-a-bg); color: var(--turno-a-texto); }
+  .tag.turnoB { background: var(--turno-b-bg); color: var(--turno-b-texto); }
 
-  .resumo-dias {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12.5px;
-    padding: 5px 0;
-    border-bottom: 1px dashed var(--borda);
-    gap: 8px;
-  }
-  .resumo-dias:last-child { border-bottom: none; }
-  .resumo-dias b { color: var(--azul); }
-
-  .preview {
-    background: var(--bg);
-    border-radius: 8px;
-    padding: 9px;
-    font-size: 12.5px;
-    margin-top: 6px;
-    color: var(--texto-suave);
-    word-break: break-word;
-  }
-  .preview b { color: var(--azul); }
-
-  .aviso-edicao {
-    background: var(--amarelo-bg);
-    color: var(--amarelo-texto);
-    padding: 7px 10px;
-    border-radius: 8px;
-    font-size: 12.5px;
-    margin-bottom: 6px;
-    display: none;
-    font-weight: 600;
-  }
-  .aviso-edicao.ativo { display: block; }
-
-  .btn-file {
-    display: block; width: 100%;
-    padding: 11px; font-size: 15px;
-    border: none; border-radius: 8px;
-    background: var(--azul); color: #fff; font-weight: 600;
-    margin-top: 8px;
-    text-align: center;
-    cursor: pointer;
-  }
-  .btn-file.sec { background: var(--texto-fraco); }
-  .btn-file input { display: none; }
-
-  .periodo-ferias {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 7px 0;
-    border-bottom: 1px solid var(--borda);
-    font-size: 12.5px;
-    gap: 6px;
-  }
-  .periodo-ferias:last-child { border-bottom: none; }
-  .periodo-ferias .info { flex: 1; min-width: 0; }
-  .periodo-ferias button {
-    width: auto; padding: 4px 7px; margin: 0;
-    font-size: 11px; border-radius: 5px;
-  }
-
-  #btnInstalar {
-    position: fixed;
-    bottom: 14px;
-    right: 14px;
-    width: auto;
-    padding: 11px 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,.25);
-    z-index: 100;
-    border-radius: 50px;
-    font-size: 13px;
-    background: var(--verde);
-    color: #fff;
-    margin: 0;
-  }
-
-  #avisoTabela {
-    background: var(--amarelo-bg);
-    color: var(--amarelo-texto);
-    padding: 9px 11px;
-    border-radius: 8px;
-    font-size: 12px;
-    margin-bottom: 6px;
-    display: none;
-  }
-  #avisoTabela.ativo { display: block; }
-
-  #ecraBoasVindas {
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    z-index: 999;
-    overflow-y: auto;
-    padding: 18px 14px 40px;
-  }
-  #ecraBoasVindas .topo {
-    text-align: center;
-    margin-bottom: 18px;
-  }
-  #ecraBoasVindas .topo h1 {
-    font-size: 22px;
-    color: var(--azul);
-    margin: 0 0 5px;
-  }
-  #ecraBoasVindas .topo p {
-    font-size: 13px;
-    color: var(--texto-fraco);
-    margin: 0;
-  }
-  #ecraBoasVindas .obrigatorio {
-    font-size: 10.5px;
-    color: var(--vermelho);
-    font-weight: 600;
-  }
-  #ecraBoasVindas .seccao {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: var(--azul);
-    text-transform: uppercase;
-    letter-spacing: .4px;
-    margin: 14px 0 5px;
-  }
-  #ecraBoasVindas .calculado {
-    background: var(--verde-bg);
-    border: 1px solid var(--verde);
-    border-radius: 8px;
-    padding: 9px;
-    font-size: 12.5px;
-    color: var(--verde-texto);
-    margin-top: 5px;
-  }
-  #ecraBoasVindas .calculado b {
-    font-size: 15px;
-    color: var(--verde);
-  }
-
-  /* ===== CALENDÁRIO DE TURNOS ===== */
-  .calendario {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
-    margin-top: 6px;
-  }
-  .cal-cabecalho {
-    text-align: center;
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--texto-fraco);
-    padding: 4px 0;
-    text-transform: uppercase;
-    letter-spacing: .3px;
-  }
-  .cal-dia {
-    aspect-ratio: 1;
-    border-radius: 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 2px 1px;
-    border: 1.5px solid transparent;
-    overflow: hidden;
-    min-width: 0;
-    cursor: pointer;
-    user-select: none;
-  }
-  .cal-dia:active { transform: scale(0.95); }
-  .cal-dia.vazio { background: transparent; cursor: default; }
-  .cal-dia.vazio:active { transform: none; }
-  .cal-dia.a {
-    background: var(--turno-a-bg);
-    color: var(--turno-a-texto);
-  }
-  .cal-dia.b {
-    background: var(--turno-b-bg);
-    color: var(--turno-b-texto);
-  }
-  .cal-dia .num {
-    font-size: 12.5px;
-    line-height: 1;
-  }
-  .cal-dia .mini-turno {
-    font-size: 8px;
-    margin-top: 2px;
-    opacity: .9;
-    font-weight: 500;
-    line-height: 1;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .cal-dia.hoje {
-    border-color: var(--azul);
-  }
-  .cal-dia.feriado {
-    border-color: var(--amarelo-texto);
-  }
-  .cal-dia.feriado .mini-turno.mini-feriado {
-    background: var(--amarelo-bg);
-    color: var(--amarelo-texto);
-    padding: 1px 3px;
-    border-radius: 3px;
-    font-weight: 700;
-    font-size: 7.5px;
-    max-width: 100%;
-    opacity: 1;
-  }
-  .cal-dia.ferias {
-    opacity: .5;
-  }
-  .cal-dia.ferias .num { text-decoration: line-through; }
-
-  /* ===== MODAL DE DIA ===== */
-  #modalDia {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.5);
-    z-index: 500;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-  }
-  #modalDia.ativo {
-    display: flex;
-  }
-  #modalDia .caixa {
+  /* ===== ACORDEÕES ===== */
+  details {
     background: var(--card);
-    border-radius: 14px;
-    padding: 18px;
-    width: 100%;
-    max-width: 420px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 40px rgba(0,0,0,.3);
+    border-radius: 16px; margin-bottom: 16px;
+    border: 1px solid var(--borda);
+    overflow: hidden;
   }
-  #modalDia h3 {
-    margin: 0 0 12px;
-    font-size: 17px;
-    color: var(--azul);
-    text-align: center;
+  summary {
+    padding: 16px; font-size: 15px; font-weight: 700;
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; list-style: none;
   }
+  summary::-webkit-details-marker { display: none; }
+  summary::after {
+    content: '▼'; font-size: 10px; color: var(--texto-fraco); transition: transform 0.2s;
+  }
+  details[open] summary::after { transform: rotate(180deg); }
+  details[open] summary { border-bottom: 1px solid var(--borda); }
+  .details-content { padding: 16px; }
+
+  /* ===== BOTTOM NAVIGATION BAR ===== */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--card); border-top: 1px solid var(--borda);
+    display: flex; justify-content: space-around;
+    padding: 8px 4px 20px 4px; /* safe area para iPhones */
+    z-index: 1000;
+    box-shadow: 0 -4px 6px -1px rgba(0,0,0,.05);
+  }
+  .bottom-nav button {
+    background: transparent; color: var(--texto-fraco);
+    margin: 0; padding: 8px 4px;
+    font-size: 11px; font-weight: 600;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    border-radius: 8px;
+  }
+  .bottom-nav button.active { color: var(--azul); }
+  .bottom-nav .icon { font-size: 20px; }
+
+  .hide { display: none !important; }
+  
+  /* ===== MODAL ===== */
+  #modalDia {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6);
+    z-index: 2000; display: none; align-items: center; justify-content: center;
+    padding: 20px; backdrop-filter: blur(4px);
+  }
+  #modalDia.ativo { display: flex; }
+  #modalDia .caixa {
+    background: var(--card); border-radius: 20px; padding: 24px;
+    width: 100%; max-width: 400px;
+  }
+  #modalDia h3 { margin: 0 0 16px 0; font-size: 18px; text-align: center; }
   #modalDia .info-linha {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--borda);
-    font-size: 13.5px;
-    gap: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--borda); font-size: 14px;
   }
   #modalDia .info-linha:last-child { border-bottom: none; }
-  #modalDia .info-linha span:first-child { color: var(--texto-fraco); }
+  #modalDia .info-linha span:first-child { color: var(--texto-suave); }
   #modalDia .info-linha span:last-child { font-weight: 600; text-align: right; }
-  #modalDia .tag-turno {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 13px;
-  }
-  #modalDia .tag-turno.a {
-    background: var(--turno-a-bg);
-    color: var(--turno-a-texto);
-  }
-  #modalDia .tag-turno.b {
-    background: var(--turno-b-bg);
-    color: var(--turno-b-texto);
-  }
-  #modalDia .tag-feriado {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 13px;
-    background: var(--amarelo-bg);
-    color: var(--amarelo-texto);
-  }
-  #modalDia .tag-ferias {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 13px;
-    background: var(--roxo);
-    color: #fff;
-  }
-  #modalDia button {
-    margin-top: 14px;
-  }
 
-  /* ===== EXCEÇÕES ===== */
-  .excecao-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--borda);
-    font-size: 13px;
-    gap: 6px;
-  }
-  .excecao-item:last-child { border-bottom: none; }
-  .excecao-item .info { flex: 1; min-width: 0; }
-  .excecao-item button {
-    width: auto; padding: 4px 7px; margin: 0;
-    font-size: 11px; border-radius: 5px;
-  }
-  .tag-excecao {
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: 700;
-  }
-  .tag-excecao.a {
-    background: var(--turno-a-bg);
-    color: var(--turno-a-texto);
-  }
-  .tag-excecao.b {
-    background: var(--turno-b-bg);
-    color: var(--turno-b-texto);
-  }
+  /* ===== PREVIEW HORAS ===== */
+  .preview { background: var(--input-bg); border-radius: 12px; padding: 12px; font-size: 13px; margin-top: 12px; color: var(--texto-suave); }
+  .preview b { color: var(--texto); }
 
-  .legenda-turnos {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    font-size: 11.5px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .legenda-turnos span {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .legenda-turnos .quadrado {
-    width: 12px; height: 12px;
-    border-radius: 3px;
-    display: inline-block;
-    flex-shrink: 0;
-  }
-
-  .semana-linha {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 7px 0;
-    border-bottom: 1px solid var(--borda);
-    font-size: 12.5px;
-    gap: 6px;
-  }
-  .semana-linha:last-child { border-bottom: none; }
-  .semana-linha .info { flex: 1; min-width: 0; }
+  /* ===== CONFIG / FORMULÁRIOS DIVERSOS ===== */
+  .info-escalao { font-size: 12px; color: var(--texto-fraco); text-align: center; font-style: italic; margin-top: 12px; }
+  
 </style>
 </head>
 <body>
 
-<div id="ecraBoasVindas" class="hide">
-  <div class="topo">
-    <h1>📅 Banco de Horas</h1>
-    <p>Antes de começar, preenche os teus dados.<br>Só precisas de fazer isto uma vez.</p>
-  </div>
+<!-- ================= ECRÃ DE BOAS VINDAS ================= -->
+<div id="ecraBoasVindas" class="hide" style="position:fixed; inset:0; background:var(--bg); z-index:3000; overflow-y:auto; padding:20px;">
+  <h1 style="text-align:center; margin-top:20px;">📅 Banco de Horas</h1>
+  <p style="text-align:center; color:var(--texto-suave); margin-bottom:24px;">Configura a tua app em 1 minuto.</p>
 
   <div class="card">
-    <div class="seccao">Remuneração</div>
-
-    <label>Ordenado base mensal (€) <span class="obrigatorio">*</span></label>
-    <input type="number" id="bv_ordenadoBase" step="0.01" placeholder="Ex: 870.00" inputmode="decimal" oninput="bv_mostrarValorHora()">
-
-    <label>Horas semanais de trabalho <span class="obrigatorio">*</span></label>
-    <input type="number" id="bv_horasSemanais" step="0.5" value="40" inputmode="decimal" oninput="bv_mostrarValorHora()">
-
-    <div id="bv_valorHoraCalculado" class="calculado">
-      Valor hora calculado: <b id="bv_valorHoraTxt">0,00 €</b>
+    <h2>Remuneração</h2>
+    <label>Ordenado base mensal (€)</label>
+    <input type="number" id="bv_ordenadoBase" step="0.01" placeholder="870.00" inputmode="decimal" oninput="bv_mostrarValorHora()">
+    
+    <div class="row">
+      <div>
+        <label>Horas semanais</label>
+        <input type="number" id="bv_horasSemanais" step="0.5" value="40" inputmode="decimal" oninput="bv_mostrarValorHora()">
+      </div>
+      <div>
+        <label>Alimentação (€/dia)</label>
+        <input type="number" id="bv_valorAli" step="0.01" placeholder="6.00" inputmode="decimal">
+      </div>
     </div>
 
-    <label>Subsídio de alimentação (€/dia) <span class="obrigatorio">*</span></label>
-    <input type="number" id="bv_valorAli" step="0.01" placeholder="Ex: 6.00" inputmode="decimal">
+    <div class="preview" style="background:var(--azul-claro); color:var(--azul-texto);">
+      Valor hora: <b id="bv_valorHoraTxt" style="color:var(--azul-texto);">0,00 €</b>
+    </div>
 
-    <label>Dia de fecho das horas extra <span class="obrigatorio">*</span></label>
-    <input type="number" id="bv_diaFecho" step="1" min="1" max="31" value="31" inputmode="numeric">
-    <p style="font-size:11px;color:var(--texto-fraco);margin:2px 0 0">
-      Ex.: se o recibo fecha a 24, as horas do dia 25 em diante contam para o mês seguinte.
-    </p>
+    <label style="margin-top:16px;">Dia de fecho das horas extra</label>
+    <input type="number" id="bv_diaFecho" step="1" min="1" max="31" value="31">
   </div>
 
   <div class="card">
-    <div class="seccao">Situação fiscal</div>
-
-    <label>Situação fiscal <span class="obrigatorio">*</span></label>
+    <h2>IRS e Segurança Social</h2>
+    <label>Situação fiscal</label>
     <select id="bv_situacao">
-      <option value="I">Tabela I — Não casado sem dependentes, ou casado dois titulares</option>
-      <option value="II">Tabela II — Não casado com um ou mais dependentes</option>
-      <option value="III">Tabela III — Casado, único titular</option>
+      <option value="I">Tabela I (Solteiro / Casado 2 titulares)</option>
+      <option value="II">Tabela II (Solteiro c/ dependentes)</option>
+      <option value="III">Tabela III (Casado 1 titular)</option>
     </select>
 
-    <label>Nº de dependentes <span class="obrigatorio">*</span></label>
-    <input type="number" id="bv_dependentes" step="1" value="0" inputmode="numeric">
-
-    <label>Segurança Social (%) <span class="obrigatorio">*</span></label>
-    <input type="number" id="bv_ssTaxa" step="0.01" value="11" inputmode="decimal">
+    <div class="row">
+      <div>
+        <label>Dependentes</label>
+        <input type="number" id="bv_dependentes" value="0">
+      </div>
+      <div>
+        <label>Segurança Social (%)</label>
+        <input type="number" id="bv_ssTaxa" value="11">
+      </div>
+    </div>
   </div>
 
-  <div class="card">
-    <div class="seccao">Feriado Municipal (opcional)</div>
-    <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
-      Se não souberes, deixa em branco. Podes preencher depois na Config.
-    </p>
-
-    <label>Data do feriado da tua cidade</label>
-    <input type="date" id="bv_feriadoMunicipalData">
-
-    <label>Nome do feriado</label>
-    <input type="text" id="bv_feriadoMunicipalNome" placeholder="Ex: São Pedro (Sintra)">
-  </div>
-
-  <button class="verde" onclick="comecarApp()">✅ Começar a usar</button>
+  <button class="verde" onclick="comecarApp()" style="padding:16px; font-size:16px;">Começar a usar a App</button>
 </div>
 
+<!-- ================= APP PRINCIPAL ================= -->
 <div id="appPrincipal" class="hide">
+  
+  <h1>Olá 👋</h1>
 
-  <h1>📅 Banco de Horas</h1>
-
-  <div class="tabs">
-    <button id="tabMes" class="active" onclick="mudarTab('mes')">Mês</button>
-    <button id="tabTurnos" onclick="mudarTab('turnos')">Turnos</button>
-    <button id="tabFerias" onclick="mudarTab('ferias')">Férias</button>
-    <button id="tabHist" onclick="mudarTab('hist')">Histórico</button>
-    <button id="tabConf" onclick="mudarTab('conf')">Config</button>
-  </div>
-
+  <!-- ===== SEPARADOR: MÊS ===== -->
   <div id="vistaMes">
-    <div class="card">
-      <label>Mês / Ano</label>
-      <input type="month" id="mesAtual">
-      <div class="row" style="margin-top:6px">
-        <div>
-          <label>Valor hora (€)</label>
-          <input type="number" id="valorHora" step="0.01">
+    <!-- DASHBOARD -->
+    <div class="dashboard">
+      <div class="label">Líquido a Receber</div>
+      <div class="valor" id="dashLiquido">0,00 €</div>
+      <div class="stats">
+        <div class="stat">
+          <div class="s-label">Horas Extra</div>
+          <div class="s-valor" id="dashHoras">0 h</div>
         </div>
-        <div>
-          <label>Alimentação (€/dia)</label>
-          <input type="number" id="valorAli" step="0.01">
+        <div class="stat">
+          <div class="s-label">Dias Trab.</div>
+          <div class="s-valor" id="dashDias">0</div>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <h2 style="margin-top:0">Adicionar / Editar dia</h2>
-      <div id="avisoEdicao" class="aviso-edicao">✏️ A editar dia — clica em Cancelar para desistir</div>
-      <label>Data</label>
-      <input type="date" id="data" onchange="atualizarPreview()">
-
-      <label>Total de horas</label>
-      <input type="number" id="horasTotal" step="0.25" value="0" oninput="atualizarPreview()">
-
-      <div id="preview" class="preview"></div>
-
-      <button id="btnGuardar" onclick="guardarDia()">Guardar dia</button>
-      <button id="btnCancelarEdicao" class="sec hide" onclick="cancelarEdicao()">Cancelar edição</button>
+    <!-- SELETOR DE MÊS -->
+    <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px;">
+      <span style="font-weight:600;">Mês de referência</span>
+      <input type="month" id="mesAtual" style="width:auto; padding:6px; font-size:14px; border:none; background:var(--input-bg);">
     </div>
 
+    <!-- RECIBO -->
     <div class="card">
-      <h2 style="margin-top:0">Dias úteis do mês</h2>
-      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
-        Desmarca os dias em que faltaste para descontar o subsídio.
-      </p>
-      <div id="listaDiasUteis"></div>
-      <div id="resumoDias" style="margin-top:8px"></div>
+      <h2>Extrato</h2>
+      <div class="recibo" id="recibo"></div>
+      <div class="info-escalao" id="infoEscalao"></div>
     </div>
 
+    <!-- ADICIONAR HORAS -->
     <div class="card">
-      <h2 style="margin-top:0">Horas extra lançadas</h2>
-      <div id="listaDias"></div>
-    </div>
-
-    <div class="card">
-      <h2 style="margin-top:0">Recibo do mês</h2>
-      <div id="recibo"></div>
-    </div>
-  </div>
-
-  <div id="vistaTurnos" class="hide">
-    <div class="card">
-      <label>Mês / Ano</label>
-      <input type="month" id="mesTurnos">
-    </div>
-
-    <div class="card">
-      <h2 style="margin-top:0">Calendário de turnos</h2>
-      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
-        Toca num dia para ver os detalhes.
-      </p>
-      <div class="calendario" id="calendario"></div>
-      <div class="legenda-turnos">
-        <span><span class="quadrado" style="background:var(--turno-a-bg)"></span><span id="legendaA">Turno A</span></span>
-        <span><span class="quadrado" style="background:var(--turno-b-bg)"></span><span id="legendaB">Turno B</span></span>
-        <span><span class="quadrado" style="background:var(--amarelo-bg);border:1px solid var(--amarelo-texto)"></span>Feriado</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2 style="margin-top:0">Exceções (trocar semanas)</h2>
-      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
-        Podes trocar uma semana específica com um colega, sem afetar as restantes. Escolhe a segunda-feira da semana a alterar.
-      </p>
-
-      <label>Segunda-feira da semana</label>
-      <input type="date" id="exc_data">
-
-      <label>Turno dessa semana</label>
-      <select id="exc_turno">
-        <option value="A">Turno A</option>
-        <option value="B">Turno B</option>
-      </select>
-
-      <button class="verde" onclick="adicionarExcecao()">+ Adicionar exceção</button>
-      <div id="listaExcecoes" style="margin-top:8px"></div>
-    </div>
-
-    <div class="card">
-      <h2 style="margin-top:0">Configuração dos turnos</h2>
-      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
-        Os turnos alternam automaticamente todas as semanas (segunda a domingo) a partir da data de referência.
-      </p>
-
+      <h2>Lançar Horas Extra</h2>
       <div class="row">
         <div>
-          <label>Nome do Turno A</label>
-          <input type="text" id="conf_nomeA" value="Dia" oninput="guardarConfigTurnos()">
+          <label>Data</label>
+          <input type="date" id="data" onchange="atualizarPreview()">
         </div>
         <div>
-          <label>Nome do Turno B</label>
-          <input type="text" id="conf_nomeB" value="Noite" oninput="guardarConfigTurnos()">
+          <label>Total de horas</label>
+          <input type="number" id="horasTotal" step="0.25" value="0" oninput="atualizarPreview()">
         </div>
       </div>
-
-      <div class="row" style="margin-top:6px">
-        <div>
-          <label>Início A</label>
-          <input type="time" id="conf_inicioA" value="08:00" oninput="guardarConfigTurnos()">
-        </div>
-        <div>
-          <label>Fim A</label>
-          <input type="time" id="conf_fimA" value="17:00" oninput="guardarConfigTurnos()">
-        </div>
+      <div id="preview" class="preview"></div>
+      <div id="avisoEdicao" class="hide" style="background:var(--amarelo-bg); color:var(--amarelo-texto); padding:10px; border-radius:8px; font-size:12px; margin-top:12px; font-weight:600; text-align:center;"></div>
+      
+      <div class="row">
+        <button id="btnGuardar" onclick="guardarDia()">Guardar Registo</button>
+        <button id="btnCancelarEdicao" class="sec hide" onclick="cancelarEdicao()">Cancelar</button>
       </div>
-
-      <div class="row" style="margin-top:6px">
-        <div>
-          <label>Início B</label>
-          <input type="time" id="conf_inicioB" value="17:00" oninput="guardarConfigTurnos()">
-        </div>
-        <div>
-          <label>Fim B</label>
-          <input type="time" id="conf_fimB" value="01:00" oninput="guardarConfigTurnos()">
-        </div>
-      </div>
-
-      <label style="margin-top:10px">Data de referência (uma segunda-feira)</label>
-      <input type="date" id="conf_dataRef" oninput="guardarConfigTurnos()">
-
-      <label>Qual o turno nessa semana?</label>
-      <select id="conf_turnoInicial" oninput="guardarConfigTurnos()">
-        <option value="A">Turno A</option>
-        <option value="B">Turno B</option>
-      </select>
     </div>
 
-    <div class="card">
-      <h2 style="margin-top:0">Próximas 8 semanas</h2>
-      <div id="proximasSemanas"></div>
-    </div>
+    <!-- ACORDEÃO HORAS LANÇADAS -->
+    <details>
+      <summary>Horas Extra Registadas</summary>
+      <div class="details-content" id="listaDias"></div>
+    </details>
+
+    <!-- ACORDEÃO DIAS ÚTEIS -->
+    <details>
+      <summary>Dias Úteis (Faltas)</summary>
+      <div class="details-content">
+        <p style="font-size:12px; color:var(--texto-fraco); margin-bottom:12px;">Desmarca os dias em que faltaste. O subsídio de alimentação será descontado.</p>
+        <div id="listaDiasUteis"></div>
+      </div>
+    </details>
   </div>
 
+  <!-- ===== SEPARADOR: FÉRIAS ===== -->
   <div id="vistaFerias" class="hide">
     <div class="card">
-      <h2 style="margin-top:0">Marcar Férias</h2>
-      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
-        Durante as férias <b>não</b> recebes subsídio de alimentação (lei portuguesa).
-      </p>
+      <h2>Marcar Férias</h2>
+      <p style="font-size:13px; color:var(--texto-fraco); margin-bottom:12px;">O subsídio de alimentação não é pago durante os dias de férias.</p>
       <div class="row">
         <div>
           <label>De</label>
@@ -858,128 +420,197 @@
           <input type="date" id="feriasAte">
         </div>
       </div>
-      <button class="verde" onclick="adicionarFerias()">+ Adicionar férias</button>
+      <button class="verde" onclick="adicionarFerias()">+ Adicionar Período</button>
     </div>
 
     <div class="card">
-      <h2 style="margin-top:0">Férias Marcadas</h2>
+      <h2>Férias Marcadas</h2>
       <div id="listaFerias"></div>
     </div>
   </div>
 
+  <!-- ===== SEPARADOR: TURNOS ===== -->
+  <div id="vistaTurnos" class="hide">
+    <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px;">
+      <span style="font-weight:600;">Mês de referência</span>
+      <input type="month" id="mesTurnos" style="width:auto; padding:6px; font-size:14px; border:none; background:var(--input-bg);">
+    </div>
+
+    <div class="card">
+      <h2>Calendário de Turnos</h2>
+      <div class="calendario" id="calendario" style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:12px;"></div>
+      <div style="display:flex; gap:12px; margin-top:16px; font-size:12px; justify-content:center;">
+        <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--turno-a-bg);"></span> <span id="legendaA">Dia</span></span>
+        <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--turno-b-bg);"></span> <span id="legendaB">Noite</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Configurar Turnos</h2>
+      <div class="row">
+        <div>
+          <label>Turno A (Nome)</label>
+          <input type="text" id="conf_nomeA" value="Dia" oninput="guardarConfigTurnos()">
+        </div>
+        <div>
+          <label>Turno B (Nome)</label>
+          <input type="text" id="conf_nomeB" value="Noite" oninput="guardarConfigTurnos()">
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div>
+          <label>Início A</label>
+          <input type="time" id="conf_inicioA" value="08:00" oninput="guardarConfigTurnos()">
+        </div>
+        <div>
+          <label>Fim A</label>
+          <input type="time" id="conf_fimA" value="17:00" oninput="guardarConfigTurnos()">
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div>
+          <label>Início B</label>
+          <input type="time" id="conf_inicioB" value="17:00" oninput="guardarConfigTurnos()">
+        </div>
+        <div>
+          <label>Fim B</label>
+          <input type="time" id="conf_fimB" value="01:00" oninput="guardarConfigTurnos()">
+        </div>
+      </div>
+      <label style="margin-top:12px;">Data de Referência (Segunda-feira)</label>
+      <input type="date" id="conf_dataRef" oninput="guardarConfigTurnos()">
+      <label>Turno nessa semana</label>
+      <select id="conf_turnoInicial" oninput="guardarConfigTurnos()">
+        <option value="A">Turno A</option>
+        <option value="B">Turno B</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <h2>Exceções (Trocar Semanas)</h2>
+      <p style="font-size:12px; color:var(--texto-fraco); margin-bottom:12px;">Troca apenas uma semana específica sem alterar a ordem das restantes.</p>
+      <div class="row">
+        <div>
+          <label>Segunda-feira</label>
+          <input type="date" id="exc_data">
+        </div>
+        <div>
+          <label>Turno</label>
+          <select id="exc_turno">
+            <option value="A">Turno A</option>
+            <option value="B">Turno B</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="adicionarExcecao()">Adicionar Exceção</button>
+      <div id="listaExcecoes" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- ===== SEPARADOR: HISTÓRICO ===== -->
   <div id="vistaHist" class="hide">
     <div class="card">
-      <h2 style="margin-top:0">Histórico</h2>
+      <h2>Histórico de Vencimentos</h2>
       <div id="listaHist"></div>
     </div>
   </div>
 
+  <!-- ===== SEPARADOR: CONFIGURAÇÕES ===== -->
   <div id="vistaConf" class="hide">
     <div class="card">
-      <h2 style="margin-top:0">Dados base</h2>
-
-      <label>Ordenado base mensal (€)</label>
+      <h2>Dados Base</h2>
+      <label>Ordenado Base (€)</label>
       <input type="number" id="ordenadoBase" step="0.01" oninput="conf_atualizarValorHora()">
-
-      <label>Horas semanais de trabalho</label>
-      <input type="number" id="horasSemanais" step="0.5" value="40" oninput="conf_atualizarValorHora()">
-
-      <label>Valor hora (€)</label>
-      <input type="number" id="valorHoraConf" step="0.01" oninput="conf_marcarValorHoraManual()">
-
-      <p style="font-size:11px;color:var(--texto-fraco);margin:5px 0">
-        O valor hora é calculado automaticamente:<br>
-        <b>(Ordenado base × 12) ÷ (52 × Horas semanais)</b><br>
-        Se preferires, podes alterá-lo à mão.
-      </p>
-
+      <div class="row">
+        <div>
+          <label>Horas / Semana</label>
+          <input type="number" id="horasSemanais" step="0.5" oninput="conf_atualizarValorHora()">
+        </div>
+        <div>
+          <label>Valor / Hora (€)</label>
+          <input type="number" id="valorHoraConf" step="0.01" oninput="conf_marcarValorHoraManual()">
+        </div>
+      </div>
       <label>Alimentação (€/dia)</label>
       <input type="number" id="valorAliConf" step="0.01">
-
-      <label>Dias úteis do mês (informativo)</label>
-      <input type="number" id="diasUteis" step="1" value="22">
+      
+      <label>Dia de Fecho (Horas Extra)</label>
+      <input type="number" id="diaFecho" step="1" min="1" max="31">
     </div>
 
     <div class="card">
-      <h2 style="margin-top:0">Fecho das Horas Extra</h2>
-      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
-        Ex.: se fechar a 24, as horas do dia 25 em diante contam para o mês seguinte.
-      </p>
-      <label>Dia de fecho</label>
-      <input type="number" id="diaFecho" step="1" min="1" max="31" value="31">
+      <h2>Feriado Municipal</h2>
+      <div class="row">
+        <div>
+          <label>Data</label>
+          <input type="date" id="feriadoMunicipalData">
+        </div>
+        <div>
+          <label>Nome</label>
+          <input type="text" id="feriadoMunicipalNome" placeholder="Ex: São Pedro">
+        </div>
+      </div>
     </div>
 
     <div class="card">
-      <h2 style="margin-top:0">Feriado Municipal</h2>
-      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
-        Configura o feriado da tua cidade (ex.: Sintra = 29 junho).
-      </p>
-
-      <label>Data do Feriado Municipal</label>
-      <input type="date" id="feriadoMunicipalData">
-
-      <label>Nome do Feriado</label>
-      <input type="text" id="feriadoMunicipalNome" placeholder="Ex: São Pedro (Sintra)">
-    </div>
-
-    <div class="card">
-      <h2 style="margin-top:0">Situação fiscal</h2>
-
-      <label>Situação fiscal</label>
+      <h2>IRS e Segurança Social</h2>
+      <label>Situação Fiscal</label>
       <select id="situacao" onchange="mudarSituacao()">
-        <option value="I">Tabela I — Não casado sem dependentes, ou casado dois titulares</option>
-        <option value="II">Tabela II — Não casado com um ou mais dependentes</option>
-        <option value="III">Tabela III — Casado, único titular</option>
+        <option value="I">Tabela I (Solteiro / Casado 2)</option>
+        <option value="II">Tabela II (Solteiro c/ dep.)</option>
+        <option value="III">Tabela III (Casado 1)</option>
       </select>
-
-      <label>Nº de dependentes</label>
-      <input type="number" id="dependentes" step="1" value="0">
-
-      <label>Segurança Social (%)</label>
-      <input type="number" id="ssTaxa" step="0.01" value="11">
-
-      <p style="font-size:11.5px;color:var(--texto-fraco);margin-top:10px">
-        A tabela do IRS é carregada do ficheiro <b>tabela-irs.json</b>.
-        Para atualizar, basta editar esse ficheiro — não é preciso mexer aqui.
-      </p>
+      <div class="row">
+        <div>
+          <label>Dependentes</label>
+          <input type="number" id="dependentes">
+        </div>
+        <div>
+          <label>Seg. Social (%)</label>
+          <input type="number" id="ssTaxa">
+        </div>
+      </div>
     </div>
 
     <div class="card">
-      <h2 style="margin-top:0">Tabela IRS (informativa)</h2>
-      <div id="avisoTabela"></div>
-      <div id="tabelaInfo" style="font-size:11.5px"></div>
-    </div>
-
-    <div class="card">
-      <h2 style="margin-top:0">Backup / Restauro</h2>
-      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
-        Guarda os teus dados num ficheiro ou recupera-os de um backup.
-      </p>
-
-      <button class="sec" onclick="fazerBackup()">💾 Descarregar backup (JSON)</button>
-
-      <label class="btn-file sec" style="margin-top:8px">
-        📂 Carregar backup (JSON)
-        <input type="file" accept=".json,application/json" onchange="carregarBackup(event)">
+      <h2>Backup e Segurança</h2>
+      <button class="sec" onclick="fazerBackup()">💾 Descarregar Backup (JSON)</button>
+      <label class="btn-file sec" style="display:block; text-align:center; margin-top:8px; padding:14px; border-radius:12px; background:var(--texto-suave); color:#fff; font-weight:600; font-size:15px; cursor:pointer;">
+        📂 Carregar Backup
+        <input type="file" accept=".json,application/json" onchange="carregarBackup(event)" style="display:none;">
       </label>
-
-      <button class="danger" onclick="apagarTudo()">Apagar todos os dados</button>
-    </div>
-
-    <div class="card">
-      <button onclick="guardarConf()">Guardar configurações</button>
+      <button class="danger" onclick="apagarTudo()" style="margin-top:16px;">Apagar Todos os Dados</button>
+      <button class="verde" onclick="guardarConf()" style="margin-top:8px;">Guardar Configurações</button>
     </div>
   </div>
 
-  <button id="btnInstalar" class="hide" onclick="instalarApp()">📲 Instalar app</button>
 </div>
 
-<!-- ===== MODAL DE DIA ===== -->
+<!-- MENU INFERIOR (BOTTOM NAV) -->
+<div class="bottom-nav hide" id="menuInferior">
+  <button id="tabMes" class="active" onclick="mudarTab('mes')">
+    <span class="icon">📊</span> Mês
+  </button>
+  <button id="tabTurnos" onclick="mudarTab('turnos')">
+    <span class="icon">⏰</span> Turnos
+  </button>
+  <button id="tabFerias" onclick="mudarTab('ferias')">
+    <span class="icon">🌴</span> Férias
+  </button>
+  <button id="tabHist" onclick="mudarTab('hist')">
+    <span class="icon">🧾</span> Histórico
+  </button>
+  <button id="tabConf" onclick="mudarTab('conf')">
+    <span class="icon">⚙️</span> Config
+  </button>
+</div>
+
+<!-- MODAL DE DETALHES DO DIA -->
 <div id="modalDia">
   <div class="caixa">
-    <h3 id="modalTitulo">Detalhes do dia</h3>
+    <h3 id="modalTitulo">Detalhes</h3>
     <div id="modalConteudo"></div>
-    <button class="sec" onclick="fecharModalDia()">Fechar</button>
+    <button class="sec" onclick="fecharModalDia()" style="margin-top:20px;">Fechar</button>
   </div>
 </div>
 
@@ -1003,69 +634,14 @@ const FERIADOS_NACIONAIS = [
 ];
 
 const TABELAS_FALLBACK = {
-  I: {
-    nome: 'Não casado sem dependentes ou casado dois titulares',
-    valorPorDependente: 21.43,
-    escaloes: [
-      { limite: 920.00,   taxa: 0.0000, parcela: 0.00,  tipo: 'fixo'    },
-      { limite: 1042.00,  taxa: 0.1250, parcela: 2.60,  tipo: 'formula', coef1: 0.1250, coef2: 2.60,  const: 1273.85 },
-      { limite: 1108.00,  taxa: 0.1570, parcela: 1.35,  tipo: 'formula', coef1: 0.1570, coef2: 1.35,  const: 1554.83 },
-      { limite: 1154.00,  taxa: 0.1570, parcela: 94.71, tipo: 'fixo'    },
-      { limite: 1212.00,  taxa: 0.2120, parcela: 158.18, tipo: 'fixo'   },
-      { limite: 1819.00,  taxa: 0.2410, parcela: 193.33, tipo: 'fixo'   },
-      { limite: 2119.00,  taxa: 0.3110, parcela: 320.66, tipo: 'fixo'   },
-      { limite: 2499.00,  taxa: 0.3490, parcela: 401.19, tipo: 'fixo'   },
-      { limite: 3305.00,  taxa: 0.3836, parcela: 487.66, tipo: 'fixo'   },
-      { limite: 5547.00,  taxa: 0.3969, parcela: 531.62, tipo: 'fixo'   },
-      { limite: 20221.00, taxa: 0.4495, parcela: 823.40, tipo: 'fixo'   },
-      { limite: Infinity, taxa: 0.4717, parcela: 1272.31, tipo: 'fixo'  }
-    ]
-  },
-  II: {
-    nome: 'Não casado com um ou mais dependentes',
-    valorPorDependente: 34.29,
-    escaloes: [
-      { limite: 920.00,   taxa: 0.0000, parcela: 0.00,  tipo: 'fixo'    },
-      { limite: 1042.00,  taxa: 0.1250, parcela: 2.60,  tipo: 'formula', coef1: 0.1250, coef2: 2.60,  const: 1273.85 },
-      { limite: 1108.00,  taxa: 0.1570, parcela: 1.35,  tipo: 'formula', coef1: 0.1570, coef2: 1.35,  const: 1554.83 },
-      { limite: 1154.00,  taxa: 0.1570, parcela: 94.71, tipo: 'fixo'    },
-      { limite: 1212.00,  taxa: 0.2120, parcela: 158.18, tipo: 'fixo'   },
-      { limite: 1819.00,  taxa: 0.2410, parcela: 193.33, tipo: 'fixo'   },
-      { limite: 2119.00,  taxa: 0.3110, parcela: 320.66, tipo: 'fixo'   },
-      { limite: 2499.00,  taxa: 0.3490, parcela: 401.19, tipo: 'fixo'   },
-      { limite: 3305.00,  taxa: 0.3836, parcela: 487.66, tipo: 'fixo'   },
-      { limite: 5547.00,  taxa: 0.3969, parcela: 531.62, tipo: 'fixo'   },
-      { limite: 20221.00, taxa: 0.4495, parcela: 823.40, tipo: 'fixo'   },
-      { limite: Infinity, taxa: 0.4717, parcela: 1272.31, tipo: 'fixo'  }
-    ]
-  },
-  III: {
-    nome: 'Casado, único titular',
-    valorPorDependente: 42.86,
-    escaloes: [
-      { limite: 991.00,   taxa: 0.0000, parcela: 0.00,  tipo: 'fixo'    },
-      { limite: 1042.00,  taxa: 0.1250, parcela: 12.50, tipo: 'formula', coef1: 0.1250, coef2: 2.60,  const: 1372.15 },
-      { limite: 1108.00,  taxa: 0.1250, parcela: 12.50, tipo: 'formula', coef1: 0.1250, coef2: 1.35,  const: 1677.85 },
-      { limite: 1119.00,  taxa: 0.1250, parcela: 96.17, tipo: 'fixo'    },
-      { limite: 1432.00,  taxa: 0.1272, parcela: 98.64, tipo: 'fixo'    },
-      { limite: 1962.00,  taxa: 0.1570, parcela: 141.32, tipo: 'fixo'   },
-      { limite: 2240.00,  taxa: 0.1938, parcela: 213.53, tipo: 'fixo'   },
-      { limite: 2773.00,  taxa: 0.2277, parcela: 289.47, tipo: 'fixo'   },
-      { limite: 3389.00,  taxa: 0.2570, parcela: 370.72, tipo: 'fixo'   },
-      { limite: 5965.00,  taxa: 0.2881, parcela: 476.12, tipo: 'fixo'   },
-      { limite: 20265.00, taxa: 0.3843, parcela: 1049.96, tipo: 'fixo'  },
-      { limite: Infinity, taxa: 0.4717, parcela: 2821.13, tipo: 'fixo'  }
-    ]
-  }
+  I: { nome: 'Solteiro/Casado 2', valorPorDependente: 21.43, escaloes: [{ limite: 920.00, taxa: 0.0000, parcela: 0.00, tipo: 'fixo' }, { limite: 1042.00, taxa: 0.1250, parcela: 2.60, tipo: 'formula', coef1: 0.1250, coef2: 2.60, const: 1273.85 }, { limite: 1108.00, taxa: 0.1570, parcela: 1.35, tipo: 'formula', coef1: 0.1570, coef2: 1.35, const: 1554.83 }, { limite: 1154.00, taxa: 0.1570, parcela: 94.71, tipo: 'fixo' }, { limite: 1212.00, taxa: 0.2120, parcela: 158.18, tipo: 'fixo' }, { limite: 1819.00, taxa: 0.2410, parcela: 193.33, tipo: 'fixo' }, { limite: 2119.00, taxa: 0.3110, parcela: 320.66, tipo: 'fixo' }, { limite: 2499.00, taxa: 0.3490, parcela: 401.19, tipo: 'fixo' }, { limite: 3305.00, taxa: 0.3836, parcela: 487.66, tipo: 'fixo' }, { limite: 5547.00, taxa: 0.3969, parcela: 531.62, tipo: 'fixo' }, { limite: 20221.00, taxa: 0.4495, parcela: 823.40, tipo: 'fixo' }, { limite: Infinity, taxa: 0.4717, parcela: 1272.31, tipo: 'fixo' }] },
+  II: { nome: 'Solteiro c/ dep.', valorPorDependente: 34.29, escaloes: [{ limite: 920.00, taxa: 0.0000, parcela: 0.00, tipo: 'fixo' }, { limite: 1042.00, taxa: 0.1250, parcela: 2.60, tipo: 'formula', coef1: 0.1250, coef2: 2.60, const: 1273.85 }, { limite: 1108.00, taxa: 0.1570, parcela: 1.35, tipo: 'formula', coef1: 0.1570, coef2: 1.35, const: 1554.83 }, { limite: 1154.00, taxa: 0.1570, parcela: 94.71, tipo: 'fixo' }, { limite: 1212.00, taxa: 0.2120, parcela: 158.18, tipo: 'fixo' }, { limite: 1819.00, taxa: 0.2410, parcela: 193.33, tipo: 'fixo' }, { limite: 2119.00, taxa: 0.3110, parcela: 320.66, tipo: 'fixo' }, { limite: 2499.00, taxa: 0.3490, parcela: 401.19, tipo: 'fixo' }, { limite: 3305.00, taxa: 0.3836, parcela: 487.66, tipo: 'fixo' }, { limite: 5547.00, taxa: 0.3969, parcela: 531.62, tipo: 'fixo' }, { limite: 20221.00, taxa: 0.4495, parcela: 823.40, tipo: 'fixo' }, { limite: Infinity, taxa: 0.4717, parcela: 1272.31, tipo: 'fixo' }] },
+  III: { nome: 'Casado 1', valorPorDependente: 42.86, escaloes: [{ limite: 991.00, taxa: 0.0000, parcela: 0.00, tipo: 'fixo' }, { limite: 1042.00, taxa: 0.1250, parcela: 12.50, tipo: 'formula', coef1: 0.1250, coef2: 2.60, const: 1372.15 }, { limite: 1108.00, taxa: 0.1250, parcela: 12.50, tipo: 'formula', coef1: 0.1250, coef2: 1.35, const: 1677.85 }, { limite: 1119.00, taxa: 0.1250, parcela: 96.17, tipo: 'fixo' }, { limite: 1432.00, taxa: 0.1272, parcela: 98.64, tipo: 'fixo' }, { limite: 1962.00, taxa: 0.1570, parcela: 141.32, tipo: 'fixo' }, { limite: 2240.00, taxa: 0.1938, parcela: 213.53, tipo: 'fixo' }, { limite: 2773.00, taxa: 0.2277, parcela: 289.47, tipo: 'fixo' }, { limite: 3389.00, taxa: 0.2570, parcela: 370.72, tipo: 'fixo' }, { limite: 5965.00, taxa: 0.2881, parcela: 476.12, tipo: 'fixo' }, { limite: 20265.00, taxa: 0.3843, parcela: 1049.96, tipo: 'fixo' }, { limite: Infinity, taxa: 0.4717, parcela: 2821.13, tipo: 'fixo' }] }
 };
 
 const LS = {
-  dias: 'bh_dias',
-  conf: 'bh_conf',
-  diasTrabalhados: 'bh_dias_trab',
-  ferias: 'bh_ferias',
-  turnos: 'bh_turnos',
-  excecoes: 'bh_excecoes',
+  dias: 'bh_dias', conf: 'bh_conf', diasTrabalhados: 'bh_dias_trab',
+  ferias: 'bh_ferias', turnos: 'bh_turnos', excecoes: 'bh_excecoes',
   configurado: 'bh_configurado'
 };
 
@@ -1077,27 +653,39 @@ let diasDesmarcados = [];
 let ferias = [];
 let dataEmEdicao = null;
 
+/* ============================================================
+   FUNÇÕES BASE
+   ============================================================ */
+function formatarData(d) {
+  const a = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${a}-${m}-${dd}`;
+}
+function ehFimDeSemana(d) { const dow = d.getDay(); return dow === 0 || dow === 6; }
+function ehFeriado(dataISO) { return FERIADOS_NACIONAIS.includes(dataISO) || (conf.feriadoMunicipalData && dataISO === conf.feriadoMunicipalData); }
+function feriadoNome(dataISO) {
+  const nomes = { '2026-01-01': 'Ano Novo', '2026-04-03': 'Sexta-feira Santa', '2026-04-05': 'Páscoa', '2026-04-25': 'Dia da Liberdade', '2026-05-01': 'Dia do Trabalhador', '2026-06-04': 'Corpo de Deus', '2026-06-10': 'Dia de Portugal', '2026-08-15': 'Assunção', '2026-10-05': 'Implantação da República', '2026-11-01': 'Todos os Santos', '2026-12-01': 'Restauração', '2026-12-08': 'Imaculada Conceição', '2026-12-25': 'Natal' };
+  if (dataISO === conf.feriadoMunicipalData) return conf.feriadoMunicipalNome || 'Feriado Municipal';
+  return nomes[dataISO] || 'Feriado';
+}
+function ehDiaFerias(dataISO) { return ferias.some(f => dataISO >= f.de && dataISO <= f.ate); }
+function segundaDaSemana(data) {
+  const d = new Date(data);
+  const dow = d.getDay();
+  const diff = (dow === 0 ? -6 : 1 - dow);
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 function carregarDadosLocais() {
   conf = JSON.parse(localStorage.getItem(LS.conf) || '{}');
-  conf = Object.assign({
-    ordenadoBase: 0, valorHora: 0, valorAli: 0, horasSemanais: 40,
-    valorHoraManual: false, diasUteis: 22, situacao: 'I',
-    dependentes: 0, ssTaxa: 11, diaFecho: 31,
-    feriadoMunicipalData: '', feriadoMunicipalNome: ''
-  }, conf);
-
+  conf = Object.assign({ ordenadoBase: 0, valorHora: 0, valorAli: 0, horasSemanais: 40, valorHoraManual: false, diasUteis: 22, situacao: 'I', dependentes: 0, ssTaxa: 11, diaFecho: 31, feriadoMunicipalData: '', feriadoMunicipalNome: '' }, conf);
   valorHoraManual = conf.valorHoraManual || false;
-
   confTurnos = JSON.parse(localStorage.getItem(LS.turnos) || '{}');
-  confTurnos = Object.assign({
-    nomeA: 'Dia', nomeB: 'Noite',
-    inicioA: '08:00', fimA: '17:00',
-    inicioB: '17:00', fimB: '01:00',
-    dataRef: '', turnoInicial: 'A'
-  }, confTurnos);
-
+  confTurnos = Object.assign({ nomeA: 'Dia', nomeB: 'Noite', inicioA: '08:00', fimA: '17:00', inicioB: '17:00', fimB: '01:00', dataRef: '', turnoInicial: 'A' }, confTurnos);
   excecoes = JSON.parse(localStorage.getItem(LS.excecoes) || '{}');
-
   dias = JSON.parse(localStorage.getItem(LS.dias) || '{}');
   diasDesmarcados = JSON.parse(localStorage.getItem(LS.diasTrabalhados) || '[]');
   ferias = JSON.parse(localStorage.getItem(LS.ferias) || '[]');
@@ -1117,20 +705,12 @@ async function carregarTabelasIRS() {
     TABELAS = {};
     for (const codigo in dados.tabelas) {
       const t = dados.tabelas[codigo];
-      TABELAS[codigo] = {
-        nome: t.nome || codigo,
-        valorPorDependente: t.valorPorDependente,
-        escaloes: (t.escaloes || []).map(e => ({
-          ...e,
-          limite: (e.limite === 999999 || e.limite === null) ? Infinity : e.limite
-        }))
-      };
+      TABELAS[codigo] = { nome: t.nome || codigo, valorPorDependente: t.valorPorDependente, escaloes: (t.escaloes || []).map(e => ({ ...e, limite: (e.limite === 999999 || e.limite === null) ? Infinity : e.limite })) };
     }
     TAXA_TRIBUTAVEL_HORAS_EXTRA = dados.taxaTributavelHorasExtra ?? 0.50;
     TABELA_ANO = dados.ano || '';
     TABELA_CARREGADA = true;
   } catch (err) {
-    console.warn('Falha tabela-irs.json:', err.message);
     TABELAS = TABELAS_FALLBACK;
     TABELA_ANO = 2026;
     TABELA_CARREGADA = false;
@@ -1143,52 +723,6 @@ function selecionarTabela(codigo) {
   VALOR_POR_DEPENDENTE = TABELA_ATUAL.valorPorDependente;
 }
 
-function formatarData(d) {
-  const a = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${a}-${m}-${dd}`;
-}
-function ehFimDeSemana(d) { const dow = d.getDay(); return dow === 0 || dow === 6; }
-
-function ehFeriado(dataISO) {
-  if (FERIADOS_NACIONAIS.includes(dataISO)) return true;
-  if (conf.feriadoMunicipalData && dataISO === conf.feriadoMunicipalData) return true;
-  return false;
-}
-
-function feriadoNome(dataISO) {
-  const nomes = {
-    '2026-01-01': 'Ano Novo', '2026-04-03': 'Sexta-feira Santa',
-    '2026-04-05': 'Páscoa', '2026-04-25': 'Dia da Liberdade',
-    '2026-05-01': 'Dia do Trabalhador', '2026-06-04': 'Corpo de Deus',
-    '2026-06-10': 'Dia de Portugal', '2026-08-15': 'Assunção',
-    '2026-10-05': 'Implantação da República', '2026-11-01': 'Todos os Santos',
-    '2026-12-01': 'Restauração', '2026-12-08': 'Imaculada Conceição',
-    '2026-12-25': 'Natal'
-  };
-  if (dataISO === conf.feriadoMunicipalData) return conf.feriadoMunicipalNome || 'Feriado Municipal';
-  return nomes[dataISO] || 'Feriado';
-}
-
-function feriadoNomeCurto(dataISO) {
-  const nomes = {
-    '2026-01-01': 'Ano Novo', '2026-04-03': 'Sexta Santa',
-    '2026-04-05': 'Páscoa', '2026-04-25': 'Liberdade',
-    '2026-05-01': 'Trabalhador', '2026-06-04': 'Corpo de Deus',
-    '2026-06-10': 'Portugal', '2026-08-15': 'Assunção',
-    '2026-10-05': 'República', '2026-11-01': 'Todos os Santos',
-    '2026-12-01': 'Restauração', '2026-12-08': 'Imaculada',
-    '2026-12-25': 'Natal'
-  };
-  if (dataISO === conf.feriadoMunicipalData) return (conf.feriadoMunicipalNome || 'Feriado Mun.').substring(0, 10);
-  return nomes[dataISO] || 'Feriado';
-}
-
-function ehDiaFerias(dataISO) {
-  return ferias.some(f => dataISO >= f.de && dataISO <= f.ate);
-}
-
 function diasUteisDoMes(mesISO) {
   const [ano, mes] = mesISO.split('-').map(Number);
   const dias = [];
@@ -1199,15 +733,6 @@ function diasUteisDoMes(mesISO) {
     d.setDate(d.getDate() + 1);
   }
   return dias;
-}
-
-function segundaDaSemana(data) {
-  const d = new Date(data);
-  const dow = d.getDay();
-  const diff = (dow === 0 ? -6 : 1 - dow);
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
 }
 
 function turnoDoDia(dataISO) {
@@ -1223,19 +748,9 @@ function turnoDoDia(dataISO) {
   } else {
     const msSemana = 7 * 24 * 60 * 60 * 1000;
     const semanas = Math.round((segDia - segRef) / msSemana);
-    if (semanas % 2 === 0) {
-      turno = confTurnos.turnoInicial;
-    } else {
-      turno = confTurnos.turnoInicial === 'A' ? 'B' : 'A';
-    }
+    turno = (semanas % 2 === 0) ? confTurnos.turnoInicial : (confTurnos.turnoInicial === 'A' ? 'B' : 'A');
   }
-
-  return {
-    codigo: turno,
-    nome: turno === 'A' ? confTurnos.nomeA : confTurnos.nomeB,
-    inicio: turno === 'A' ? confTurnos.inicioA : confTurnos.inicioB,
-    fim: turno === 'A' ? confTurnos.fimA : confTurnos.fimB
-  };
+  return { codigo: turno, nome: turno === 'A' ? confTurnos.nomeA : confTurnos.nomeB, inicio: turno === 'A' ? confTurnos.inicioA : confTurnos.inicioB, fim: turno === 'A' ? confTurnos.fimA : confTurnos.fimB };
 }
 
 function classificarHoras(dataISO, horasTotal) {
@@ -1246,19 +761,20 @@ function classificarHoras(dataISO, horasTotal) {
   return { h25: 1, h375: horasTotal - 1, h50: 0, tipo: '25+375' };
 }
 
+/* ============================================================
+   INICIALIZAÇÃO E CONFIGURAÇÃO
+   ============================================================ */
 function bv_mostrarValorHora() {
   const ob = +document.getElementById('bv_ordenadoBase').value || 0;
   const hs = +document.getElementById('bv_horasSemanais').value || 0;
-  const vh = calcularValorHora(ob, hs);
-  document.getElementById('bv_valorHoraTxt').textContent = vh.toFixed(2).replace('.', ',') + ' €';
+  document.getElementById('bv_valorHoraTxt').textContent = calcularValorHora(ob, hs).toFixed(2).replace('.', ',') + ' €';
 }
 
 function conf_atualizarValorHora() {
   if (valorHoraManual) return;
   const ob = +document.getElementById('ordenadoBase').value || 0;
   const hs = +document.getElementById('horasSemanais').value || 0;
-  const vh = calcularValorHora(ob, hs);
-  document.getElementById('valorHoraConf').value = vh.toFixed(2);
+  document.getElementById('valorHoraConf').value = calcularValorHora(ob, hs).toFixed(2);
 }
 
 function conf_marcarValorHoraManual() {
@@ -1267,98 +783,54 @@ function conf_marcarValorHoraManual() {
 }
 
 function mudarSituacao() {
-  const nova = document.getElementById('situacao').value;
-  conf.situacao = nova;
-  selecionarTabela(nova);
-  salvarConf();
-  renderTabelaInfo();
-  renderMes();
-  renderHist();
-}
-
-function mostrarBoasVindas() {
-  document.getElementById('ecraBoasVindas').classList.remove('hide');
-  document.getElementById('appPrincipal').classList.add('hide');
-  bv_mostrarValorHora();
+  conf.situacao = document.getElementById('situacao').value;
+  selecionarTabela(conf.situacao);
+  salvarConf(); renderTabelaInfo(); renderMes(); renderHist();
 }
 
 function comecarApp() {
   try {
-    const ordenadoBase = +document.getElementById('bv_ordenadoBase').value;
-    const horasSemanais = +document.getElementById('bv_horasSemanais').value;
-    const valorAli     = +document.getElementById('bv_valorAli').value;
-    const diaFecho     = +document.getElementById('bv_diaFecho').value || 31;
-    const situacao     = document.getElementById('bv_situacao').value;
-    const dependentes  = +document.getElementById('bv_dependentes').value || 0;
-    const ssTaxa       = +document.getElementById('bv_ssTaxa').value;
-    const feriadoData  = document.getElementById('bv_feriadoMunicipalData').value;
-    const feriadoNome  = document.getElementById('bv_feriadoMunicipalNome').value.trim();
+    const ob = +document.getElementById('bv_ordenadoBase').value;
+    const hs = +document.getElementById('bv_horasSemanais').value;
+    const va = +document.getElementById('bv_valorAli').value;
+    const df = +document.getElementById('bv_diaFecho').value || 31;
+    const sit = document.getElementById('bv_situacao').value;
+    const dep = +document.getElementById('bv_dependentes').value || 0;
+    const ss = +document.getElementById('bv_ssTaxa').value;
 
-    if (!ordenadoBase || ordenadoBase <= 0) return alert('Preenche o ordenado base.');
-    if (!horasSemanais || horasSemanais <= 0) return alert('Preenche as horas semanais.');
-    if (isNaN(valorAli) || valorAli < 0) return alert('Preenche o subsídio de alimentação.');
-    if (!ssTaxa || ssTaxa <= 0) return alert('Preenche a taxa da Segurança Social.');
+    if (!ob || !hs || isNaN(va) || !ss) return alert('Preenche todos os campos corretamente.');
 
-    const valorHora = calcularValorHora(ordenadoBase, horasSemanais);
+    conf.ordenadoBase = ob; conf.horasSemanais = hs; conf.valorHora = +calcularValorHora(ob, hs).toFixed(2);
+    conf.valorAli = va; conf.diaFecho = df; conf.situacao = sit; conf.dependentes = dep; conf.ssTaxa = ss;
+    conf.valorHoraManual = false; valorHoraManual = false;
 
-    conf.ordenadoBase = ordenadoBase;
-    conf.horasSemanais = horasSemanais;
-    conf.valorHora    = +valorHora.toFixed(2);
-    conf.valorAli     = valorAli;
-    conf.diaFecho     = diaFecho;
-    conf.situacao     = situacao;
-    conf.dependentes  = dependentes;
-    conf.ssTaxa       = ssTaxa;
-    conf.feriadoMunicipalData = feriadoData;
-    conf.feriadoMunicipalNome = feriadoNome;
-    conf.valorHoraManual = false;
-    valorHoraManual = false;
+    if (!confTurnos.dataRef) { confTurnos.dataRef = formatarData(segundaDaSemana(new Date())); salvarConfTurnos(); }
 
-    if (!confTurnos.dataRef) {
-      const seg = segundaDaSemana(new Date());
-      confTurnos.dataRef = formatarData(seg);
-      salvarConfTurnos();
-    }
-
-    selecionarTabela(situacao);
-    salvarConf();
+    selecionarTabela(sit); salvarConf();
     localStorage.setItem(LS.configurado, 'true');
 
     document.getElementById('ecraBoasVindas').classList.add('hide');
     document.getElementById('appPrincipal').classList.remove('hide');
+    document.getElementById('menuInferior').classList.remove('hide');
 
-    preencherCamposApp();
-    preencherCamposTurnos();
-    renderTabelaInfo();
-    atualizarPreview();
-    renderFerias();
-    renderMes();
-    renderHist();
-  } catch (error) {
-    alert('Erro ao iniciar a app: ' + error.message);
-    console.error(error);
-  }
+    preencherCamposApp(); preencherCamposTurnos(); renderTabelaInfo();
+    atualizarPreview(); renderFerias(); renderMes(); renderHist();
+  } catch (e) { alert('Erro: ' + e.message); }
 }
 
 window.onload = async () => {
   await carregarTabelasIRS();
   carregarDadosLocais();
   
-  document.getElementById('modalDia').classList.remove('ativo');
-
-  const jaConfigurado = localStorage.getItem(LS.configurado) === 'true';
-  if (!jaConfigurado) {
-    mostrarBoasVindas();
-  } else {
+  if (localStorage.getItem(LS.configurado) === 'true') {
     selecionarTabela(conf.situacao);
     document.getElementById('appPrincipal').classList.remove('hide');
-    preencherCamposApp();
-    preencherCamposTurnos();
-    renderTabelaInfo();
-    atualizarPreview();
-    renderFerias();
-    renderMes();
-    renderHist();
+    document.getElementById('menuInferior').classList.remove('hide');
+    preencherCamposApp(); preencherCamposTurnos(); renderTabelaInfo();
+    atualizarPreview(); renderFerias(); renderMes(); renderHist();
+  } else {
+    document.getElementById('ecraBoasVindas').classList.remove('hide');
+    bv_mostrarValorHora();
   }
 };
 
@@ -1371,24 +843,18 @@ function preencherCamposApp() {
   document.getElementById('feriasAte').value = hoje.toISOString().slice(0,10);
 
   document.getElementById('ordenadoBase').value = conf.ordenadoBase;
-  document.getElementById('horasSemanais').value = conf.horasSemanais || 40;
+  document.getElementById('horasSemanais').value = conf.horasSemanais;
   document.getElementById('valorHoraConf').value = conf.valorHora;
-  document.getElementById('valorAliConf').value  = conf.valorAli;
-  document.getElementById('diasUteis').value     = conf.diasUteis;
-  document.getElementById('situacao').value      = conf.situacao || 'I';
-  document.getElementById('dependentes').value   = conf.dependentes;
-  document.getElementById('ssTaxa').value        = conf.ssTaxa;
-  document.getElementById('diaFecho').value      = conf.diaFecho || 31;
+  document.getElementById('valorAliConf').value = conf.valorAli;
+  document.getElementById('diaFecho').value = conf.diaFecho;
+  document.getElementById('situacao').value = conf.situacao;
+  document.getElementById('dependentes').value = conf.dependentes;
+  document.getElementById('ssTaxa').value = conf.ssTaxa;
   document.getElementById('feriadoMunicipalData').value = conf.feriadoMunicipalData;
   document.getElementById('feriadoMunicipalNome').value = conf.feriadoMunicipalNome;
 
-  document.getElementById('valorHora').value = conf.valorHora;
-  document.getElementById('valorAli').value  = conf.valorAli;
-
   document.getElementById('mesAtual').onchange = renderMes;
   document.getElementById('mesTurnos').onchange = renderTurnos;
-  document.getElementById('valorHora').onchange = e => { conf.valorHora = +e.target.value; salvarConf(); renderMes(); };
-  document.getElementById('valorAli').onchange  = e => { conf.valorAli  = +e.target.value; salvarConf(); renderMes(); };
 }
 
 function preencherCamposTurnos() {
@@ -1400,120 +866,75 @@ function preencherCamposTurnos() {
   document.getElementById('conf_fimB').value = confTurnos.fimB;
   document.getElementById('conf_dataRef').value = confTurnos.dataRef;
   document.getElementById('conf_turnoInicial').value = confTurnos.turnoInicial;
-  document.getElementById('legendaA').textContent = `${confTurnos.nomeA} (${confTurnos.inicioA}–${confTurnos.fimA})`;
-  document.getElementById('legendaB').textContent = `${confTurnos.nomeB} (${confTurnos.inicioB}–${confTurnos.fimB})`;
+  document.getElementById('legendaA').textContent = confTurnos.nomeA;
+  document.getElementById('legendaB').textContent = confTurnos.nomeB;
 }
 
 function mudarTab(t) {
   ['mes','turnos','ferias','hist','conf'].forEach(x => {
-    const vista = document.getElementById('vista' + x.charAt(0).toUpperCase() + x.slice(1));
-    if(vista) vista.classList.toggle('hide', x !== t);
-    const tab = document.getElementById('tab' + x.charAt(0).toUpperCase() + x.slice(1));
-    if(tab) tab.classList.toggle('active', x === t);
+    const v = document.getElementById('vista' + x.charAt(0).toUpperCase() + x.slice(1));
+    if(v) v.classList.toggle('hide', x !== t);
+    const b = document.getElementById('tab' + x.charAt(0).toUpperCase() + x.slice(1));
+    if(b) b.classList.toggle('active', x === t);
   });
   if (t === 'hist') renderHist();
   if (t === 'turnos') { renderTurnos(); renderExcecoes(); }
   if (t === 'ferias') renderFerias();
 }
 
+/* ============================================================
+   LÓGICA DO MÊS E RECIBO
+   ============================================================ */
 function atualizarPreview() {
-  const dataISO = document.getElementById('data').value;
-  const horas = +document.getElementById('horasTotal').value || 0;
+  const dISO = document.getElementById('data').value;
+  const h = +document.getElementById('horasTotal').value || 0;
   const div = document.getElementById('preview');
-  if (!dataISO) { div.innerHTML = 'Escolhe uma data para ver a classificação automática.'; return; }
-  const d = new Date(dataISO + 'T00:00:00');
-  const nomeDia = d.toLocaleDateString('pt-PT', { weekday: 'long' });
-  const dataFmt = d.toLocaleDateString('pt-PT');
-  const feriado = ehFeriado(dataISO);
-  const fimSemana = ehFimDeSemana(d);
-  const t = turnoDoDia(dataISO);
+  if (!dISO) { div.innerHTML = 'Escolhe uma data.'; return; }
+  
+  const d = new Date(dISO + 'T00:00:00');
+  const feriado = ehFeriado(dISO);
+  const t = turnoDoDia(dISO);
   const turnoTxt = t ? ` · Turno: <b>${t.nome}</b>` : '';
-  if (horas <= 0) {
-    div.innerHTML = `<b>${dataFmt}</b> (${nomeDia})${feriado ? ' — <b>' + feriadoNome(dataISO) + '</b>' : ''}${turnoTxt}<br>Introduz as horas para ver a classificação.`;
+  const dataFmt = d.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'short' });
+
+  if (h <= 0) {
+    div.innerHTML = `<b>${dataFmt}</b>${feriado ? ' (Feriado)' : ''}${turnoTxt}<br>Introduz as horas.`;
     return;
   }
-  const c = classificarHoras(dataISO, horas);
+  const c = classificarHoras(dISO, h);
   let detalhe = '';
-  if (c.tipo === '50') detalhe = `🔴 ${horas}h todas a <b>50%</b> ${fimSemana ? '(fim de semana)' : '(feriado)'}`;
-  else if (c.tipo === '25') detalhe = `🟢 ${horas}h a <b>25%</b> (1ª hora em dia útil)`;
-  else detalhe = `🟢 1h a <b>25%</b> + ${c.h375}h a <b>37,5%</b> (dia útil)`;
-  div.innerHTML = `<b>${dataFmt}</b> (${nomeDia})${feriado ? ' — <b>' + feriadoNome(dataISO) + '</b>' : ''}${turnoTxt}<br>${detalhe}`;
+  if (c.tipo === '50') detalhe = `🔴 <b>${h}h</b> a 50%`;
+  else if (c.tipo === '25') detalhe = `🟢 <b>${h}h</b> a 25%`;
+  else detalhe = `🟢 1h a 25% + <b>${c.h375}h</b> a 37,5%`;
+  div.innerHTML = `<b>${dataFmt}</b>${turnoTxt}<br>${detalhe}`;
 }
-
-function adicionarFerias() {
-  const de = document.getElementById('feriasDe').value;
-  const ate = document.getElementById('feriasAte').value;
-  if (!de || !ate) return alert('Preenche as duas datas');
-  if (ate < de) return alert('A data "Até" tem de ser depois do "De"');
-  ferias.push({ de, ate });
-  ferias.sort((a, b) => a.de.localeCompare(b.de));
-  salvarFerias();
-  renderFerias();
-  renderMes();
-  renderTurnos();
-}
-
-function apagarFerias(idx) {
-  if (!confirm('Apagar este período de férias?')) return;
-  ferias.splice(idx, 1);
-  salvarFerias();
-  renderFerias();
-  renderMes();
-  renderTurnos();
-}
-
-function renderFerias() {
-  const lista = document.getElementById('listaFerias');
-  if (!ferias.length) {
-    lista.innerHTML = '<p style="color:var(--texto-muito-fraco);font-size:12.5px">Sem férias marcadas.</p>';
-    return;
-  }
-  let html = '';
-  ferias.forEach((f, idx) => {
-    const deFmt = f.de.split('-').reverse().join('/');
-    const ateFmt = f.ate.split('-').reverse().join('/');
-    html += `<div class="periodo-ferias"><span class="info">📅 ${deFmt} → ${ateFmt}</span><button class="danger" onclick="apagarFerias(${idx})">×</button></div>`;
-  });
-  lista.innerHTML = html;
-}
-
-function salvarFerias() { localStorage.setItem(LS.ferias, JSON.stringify(ferias)); }
 
 function guardarDia() {
   const data = document.getElementById('data').value;
-  if (!data) return alert('Escolhe uma data');
-  const horasTotal = +document.getElementById('horasTotal').value || 0;
-  if (horasTotal <= 0) return alert('Introduz as horas');
-  const c = classificarHoras(data, horasTotal);
-  dias[data] = { horasTotal, h25: c.h25, h375: c.h375, h50: c.h50 };
-  salvarDias();
-  cancelarEdicao();
-  renderMes();
+  const hTot = +document.getElementById('horasTotal').value || 0;
+  if (!data || hTot <= 0) return alert('Preenche a data e as horas.');
+  const c = classificarHoras(data, hTot);
+  dias[data] = { horasTotal: hTot, h25: c.h25, h375: c.h375, h50: c.h50 };
+  salvarDias(); cancelarEdicao(); renderMes();
 }
 
 function editarDia(dataISO) {
-  const h = dias[dataISO];
-  if (!h) return;
+  const h = dias[dataISO]; if (!h) return;
   dataEmEdicao = dataISO;
   document.getElementById('data').value = dataISO;
-  document.getElementById('horasTotal').value = h.horasTotal || (h.h25 + h.h375 + h.h50);
-  document.getElementById('avisoEdicao').classList.add('ativo');
-  document.getElementById('btnGuardar').textContent = 'Guardar alterações';
+  document.getElementById('horasTotal').value = h.horasTotal;
+  document.getElementById('avisoEdicao').classList.remove('hide');
+  document.getElementById('avisoEdicao').textContent = 'A editar ' + dataISO.split('-').reverse().join('/');
+  document.getElementById('btnGuardar').textContent = 'Atualizar Registo';
   document.getElementById('btnCancelarEdicao').classList.remove('hide');
-  const mesDoDia = dataISO.slice(0,7);
-  const mesAtual = document.getElementById('mesAtual').value;
-  if (mesDoDia !== mesAtual) {
-    document.getElementById('mesAtual').value = mesDoDia;
-    renderMes();
-  }
   atualizarPreview();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function cancelarEdicao() {
   dataEmEdicao = null;
-  document.getElementById('avisoEdicao').classList.remove('ativo');
-  document.getElementById('btnGuardar').textContent = 'Guardar dia';
+  document.getElementById('avisoEdicao').classList.add('hide');
+  document.getElementById('btnGuardar').textContent = 'Guardar Registo';
   document.getElementById('btnCancelarEdicao').classList.add('hide');
   document.getElementById('horasTotal').value = 0;
   atualizarPreview();
@@ -1521,27 +942,168 @@ function cancelarEdicao() {
 
 function apagarDia(data) {
   if (!confirm('Apagar ' + data + '?')) return;
-  delete dias[data];
-  salvarDias();
+  delete dias[data]; salvarDias();
   if (dataEmEdicao === data) cancelarEdicao();
   renderMes();
 }
 
-function salvarDias() { localStorage.setItem(LS.dias, JSON.stringify(dias)); }
-function salvarConf() { localStorage.setItem(LS.conf, JSON.stringify(conf)); }
-function salvarConfTurnos() { localStorage.setItem(LS.turnos, JSON.stringify(confTurnos)); }
-function salvarDiasDesmarcados() { localStorage.setItem(LS.diasTrabalhados, JSON.stringify(diasDesmarcados)); }
-function salvarExcecoes() { localStorage.setItem(LS.excecoes, JSON.stringify(excecoes)); }
-
 function toggleDiaUtil(dataISO) {
   if (ehDiaFerias(dataISO)) return;
   const idx = diasDesmarcados.indexOf(dataISO);
-  if (idx === -1) diasDesmarcados.push(dataISO);
-  else diasDesmarcados.splice(idx, 1);
-  salvarDiasDesmarcados();
-  renderMes();
+  if (idx === -1) diasDesmarcados.push(dataISO); else diasDesmarcados.splice(idx, 1);
+  salvarDiasDesmarcados(); renderMes();
 }
 
+function calcularIRSSobreBase(baseTributavel) {
+  if (!TABELA_ATUAL || !TABELA_ATUAL.escaloes.length) return { irsBase: 0, escalao: null, parcelaAbater: 0, deducaoDep: 0, taxa: 0, taxaEfetiva: 0 };
+  let escalao = TABELA_ATUAL.escaloes[TABELA_ATUAL.escaloes.length - 1];
+  for (const e of TABELA_ATUAL.escaloes) { if (baseTributavel <= e.limite) { escalao = e; break; } }
+  let parcelaAbater = (escalao.tipo === 'formula') ? escalao.coef1 * escalao.coef2 * (escalao.const - baseTributavel) : escalao.parcela;
+  if (parcelaAbater < 0) parcelaAbater = 0;
+  const irsBruto = (baseTributavel * escalao.taxa) - parcelaAbater;
+  const deducaoDep = VALOR_POR_DEPENDENTE * conf.dependentes;
+  const irsExato = Math.max(0, irsBruto - deducaoDep);
+  const irsBase = Math.floor(irsExato);
+  return { irsBase, irsExato, escalao, parcelaAbater, deducaoDep, taxa: escalao.taxa, taxaEfetiva: baseTributavel > 0 ? irsBase / baseTributavel : 0 };
+}
+
+function calcularIRS(baseTributavel, totalExtra) {
+  const r = calcularIRSSobreBase(baseTributavel);
+  let irsExtra = 0, taxaExtra = 0;
+  if (totalExtra > 0 && r.taxaEfetiva > 0) {
+    taxaExtra = r.taxaEfetiva * TAXA_TRIBUTAVEL_HORAS_EXTRA;
+    irsExtra = totalExtra * taxaExtra;
+  }
+  return { irs: r.irsBase + irsExtra, irsBase: r.irsBase, irsExtra, taxaEfetivaBase: r.taxaEfetiva, taxaExtra, escalao: r.escalao };
+}
+
+function renderMes() {
+  const mes = document.getElementById('mesAtual').value; if (!mes) return;
+  const vh = conf.valorHora; const va = conf.valorAli;
+
+  // -- DIAS ÚTEIS --
+  const uteis = diasUteisDoMes(mes);
+  const listaUteis = document.getElementById('listaDiasUteis'); listaUteis.innerHTML = '';
+  let trabalhados = 0;
+
+  uteis.forEach(iso => {
+    const d = iso.split('-')[2];
+    const feriasDia = ehDiaFerias(iso);
+    const desmarcado = diasDesmarcados.includes(iso) || feriasDia;
+    if (!desmarcado) trabalhados++;
+    const t = turnoDoDia(iso);
+    const div = document.createElement('div');
+    div.className = 'dia-util' + (desmarcado ? ' desmarcado' : '') + (feriasDia ? ' ferias' : '');
+    div.innerHTML = `
+      <input type="checkbox" ${desmarcado ? '' : 'checked'} ${feriasDia ? 'disabled' : ''} onchange="toggleDiaUtil('${iso}')">
+      <span class="data">${d}/${mes.split('-')[1]} ${new Date(iso + 'T00:00:00').toLocaleDateString('pt-PT', { weekday: 'short' })}</span>
+      ${t ? `<span class="tag ${t.codigo === 'A' ? 'turnoA' : 'turnoB'}">${t.nome}</span>` : ''}
+      ${feriasDia ? '<span class="tag ferias">Férias</span>' : ''}
+    `;
+    listaUteis.appendChild(div);
+  });
+
+  // -- HORAS EXTRA --
+  const fecho = conf.diaFecho || 31;
+  const [anoMes, mesNum] = mes.split('-').map(Number);
+  let dataInicioObj = new Date(anoMes, mesNum - 2, fecho + 1);
+  let dataFimObj = new Date(anoMes, mesNum - 1, fecho);
+  const ultimoDiaMesObj = new Date(anoMes, mesNum, 0).getDate();
+  if (fecho > ultimoDiaMesObj && fecho >= 28) dataFimObj = new Date(anoMes, mesNum - 1, ultimoDiaMesObj);
+
+  const inicioISO = formatarData(dataInicioObj); const fimISO = formatarData(dataFimObj);
+  const doMes = Object.entries(dias).filter(([d]) => d >= inicioISO && d <= fimISO).sort();
+
+  let t25 = 0, t375 = 0, t50 = 0, totalHoras = 0;
+  const lista = document.getElementById('listaDias');
+  lista.innerHTML = doMes.length ? '' : '<p style="color:var(--texto-fraco);font-size:13px; text-align:center;">Sem registos neste período.</p>';
+
+  doMes.forEach(([data, h]) => {
+    const euros = h.h25*vh*1.25 + h.h375*vh*1.375 + h.h50*vh*1.50;
+    t25 += h.h25; t375 += h.h375; t50 += h.h50;
+    totalHoras += (h.h25 + h.h375 + h.h50);
+    const [a, m, d] = data.split('-');
+    
+    let tag = h.h50 > 0 ? `<span style="color:var(--vermelho)">50%</span>` : (h.h375 > 0 ? `<span style="color:var(--verde)">25+37%</span>` : `<span style="color:var(--verde)">25%</span>`);
+
+    const div = document.createElement('div');
+    div.className = 'dia';
+    div.innerHTML = `
+      <span class="info">${d}/${m} · ${tag} · <b>${euros.toFixed(2)}€</b></span>
+      <span class="botoes">
+        <button class="aviso" onclick="editarDia('${data}')">Editar</button>
+        <button class="danger" onclick="apagarDia('${data}')">X</button>
+      </span>`;
+    lista.appendChild(div);
+  });
+
+  // -- CÁLCULOS FINAIS --
+  const base = conf.ordenadoBase;
+  const euros25 = t25 * vh * 1.25; const euros375 = t375 * vh * 1.375; const euros50 = t50 * vh * 1.50;
+  const totalExtra = euros25 + euros375 + euros50;
+  const alimentacao = trabalhados * va;
+  const totalAbonos = base + totalExtra + alimentacao;
+  const calcIRS = calcularIRS(base, totalExtra);
+  const ss = (base + totalExtra) * (conf.ssTaxa / 100);
+  const totalDescontos = calcIRS.irs + ss;
+  const liquido = totalAbonos - totalDescontos;
+
+  // -- ATUALIZAR DASHBOARD --
+  document.getElementById('dashLiquido').textContent = liquido.toFixed(2).replace('.', ',') + ' €';
+  document.getElementById('dashHoras').textContent = totalHoras.toFixed(1).replace('.', ',') + ' h';
+  document.getElementById('dashDias').textContent = trabalhados;
+
+  // -- CONSTRUIR RECIBO (EXTRATO) --
+  let reciboHTML = '';
+  reciboHTML += `<div class="subsecao">Abonos</div>`;
+  reciboHTML += `<div class="linha abono"><span>Vencimento Base</span><span>${base.toFixed(2)} €</span></div>`;
+  if (t25 > 0) reciboHTML += `<div class="linha abono"><span>Horas 25% (${t25}h)</span><span>${euros25.toFixed(2)} €</span></div>`;
+  if (t375 > 0) reciboHTML += `<div class="linha abono"><span>Horas 37,5% (${t375}h)</span><span>${euros375.toFixed(2)} €</span></div>`;
+  if (t50 > 0) reciboHTML += `<div class="linha abono"><span>Horas 50% (${t50}h)</span><span>${euros50.toFixed(2)} €</span></div>`;
+  reciboHTML += `<div class="linha abono"><span>Sub. Alimentação (${trabalhados}d)</span><span>${alimentacao.toFixed(2)} €</span></div>`;
+  reciboHTML += `<div class="linha total"><span>Total Abonos</span><span>${totalAbonos.toFixed(2)} €</span></div>`;
+
+  reciboHTML += `<div class="subsecao">Descontos</div>`;
+  reciboHTML += `<div class="linha desconto"><span>IRS Base (${(calcIRS.taxaEfetivaBase*100).toFixed(2)}%)</span><span>-${calcIRS.irsBase.toFixed(2)} €</span></div>`;
+  if (totalExtra > 0) reciboHTML += `<div class="linha desconto"><span>IRS Horas Extra</span><span>-${calcIRS.irsExtra.toFixed(2)} €</span></div>`;
+  reciboHTML += `<div class="linha desconto"><span>Seg. Social (${conf.ssTaxa}%)</span><span>-${ss.toFixed(2)} €</span></div>`;
+  reciboHTML += `<div class="linha total"><span>Total Descontos</span><span>-${totalDescontos.toFixed(2)} €</span></div>`;
+
+  document.getElementById('recibo').innerHTML = reciboHTML;
+  document.getElementById('infoEscalao').textContent = calcIRS.escalao ? `Tabela ${conf.situacao} · Efetiva ${(calcIRS.taxaEfetivaBase*100).toFixed(2)}%` : '';
+}
+
+/* ============================================================
+   FÉRIAS
+   ============================================================ */
+function adicionarFerias() {
+  const de = document.getElementById('feriasDe').value;
+  const ate = document.getElementById('feriasAte').value;
+  if (!de || !ate || ate < de) return alert('Datas inválidas.');
+  ferias.push({ de, ate });
+  ferias.sort((a, b) => a.de.localeCompare(b.de));
+  salvarFerias(); renderFerias(); renderMes();
+}
+
+function apagarFerias(idx) {
+  if (!confirm('Apagar férias?')) return;
+  ferias.splice(idx, 1); salvarFerias(); renderFerias(); renderMes();
+}
+
+function renderFerias() {
+  const lista = document.getElementById('listaFerias');
+  if (!ferias.length) { lista.innerHTML = '<p style="text-align:center; color:var(--texto-fraco); font-size:13px;">Sem férias.</p>'; return; }
+  let html = '';
+  ferias.forEach((f, idx) => {
+    const deF = f.de.split('-').reverse().join('/'); const ateF = f.ate.split('-').reverse().join('/');
+    html += `<div class="dia"><span class="info" style="color:var(--roxo); font-weight:600;">🌴 ${deF} → ${ateF}</span><button class="danger" onclick="apagarFerias(${idx})" style="width:auto; padding:6px 12px; margin:0;">Apagar</button></div>`;
+  });
+  lista.innerHTML = html;
+}
+
+/* ============================================================
+   TURNOS
+   ============================================================ */
 function guardarConfigTurnos() {
   confTurnos.nomeA = document.getElementById('conf_nomeA').value || 'Dia';
   confTurnos.nomeB = document.getElementById('conf_nomeB').value || 'Noite';
@@ -1552,170 +1114,51 @@ function guardarConfigTurnos() {
   confTurnos.dataRef = document.getElementById('conf_dataRef').value;
   confTurnos.turnoInicial = document.getElementById('conf_turnoInicial').value;
   salvarConfTurnos();
-  document.getElementById('legendaA').textContent = `${confTurnos.nomeA} (${confTurnos.inicioA}–${confTurnos.fimA})`;
-  document.getElementById('legendaB').textContent = `${confTurnos.nomeB} (${confTurnos.inicioB}–${confTurnos.fimB})`;
-  renderTurnos();
-  renderMes();
+  document.getElementById('legendaA').textContent = confTurnos.nomeA;
+  document.getElementById('legendaB').textContent = confTurnos.nomeB;
+  renderTurnos(); renderMes();
 }
 
 function adicionarExcecao() {
   const dataExc = document.getElementById('exc_data').value;
-  if (!dataExc) return alert('Escolhe a segunda-feira da semana');
-
+  if (!dataExc) return alert('Escolhe uma data.');
   const d = new Date(dataExc + 'T00:00:00');
-  if (d.getDay() !== 1) {
-    if (!confirm('A data escolhida não é segunda-feira. Queres usar a segunda-feira da semana dessa data?')) return;
-  }
-
-  const seg = segundaDaSemana(d);
-  const segISO = formatarData(seg);
-  const turno = document.getElementById('exc_turno').value;
-
-  excecoes[segISO] = turno;
-  salvarExcecoes();
-  renderExcecoes();
-  renderTurnos();
-  renderMes();
-  alert('Exceção guardada para a semana de ' + segISO.split('-').reverse().join('/'));
+  const segISO = formatarData(segundaDaSemana(d));
+  excecoes[segISO] = document.getElementById('exc_turno').value;
+  salvarExcecoes(); renderExcecoes(); renderTurnos(); renderMes();
+  document.getElementById('exc_data').value = '';
 }
 
 function apagarExcecao(segISO) {
-  if (!confirm('Apagar esta exceção?')) return;
-  delete excecoes[segISO];
-  salvarExcecoes();
-  renderExcecoes();
-  renderTurnos();
-  renderMes();
+  if (!confirm('Apagar exceção?')) return;
+  delete excecoes[segISO]; salvarExcecoes(); renderExcecoes(); renderTurnos(); renderMes();
 }
 
 function renderExcecoes() {
   const lista = document.getElementById('listaExcecoes');
-  if (!lista) return;
   const chaves = Object.keys(excecoes).sort();
-
-  if (!chaves.length) {
-    lista.innerHTML = '<p style="color:var(--texto-muito-fraco);font-size:12.5px">Sem exceções. O calendário segue a alternância automática.</p>';
-    return;
-  }
-
+  if (!chaves.length) { lista.innerHTML = '<p style="font-size:12px; color:var(--texto-fraco); text-align:center;">Sem exceções.</p>'; return; }
   let html = '';
-  chaves.forEach(segISO => {
-    const seg = new Date(segISO + 'T00:00:00');
-    const dom = new Date(seg);
-    dom.setDate(dom.getDate() + 6);
-    const deFmt = seg.getDate() + '/' + (seg.getMonth()+1);
-    const ateFmt = dom.getDate() + '/' + (dom.getMonth()+1);
-    const turno = excecoes[segISO];
-    const nomeTurno = turno === 'A' ? confTurnos.nomeA : confTurnos.nomeB;
-
-    html += `
-      <div class="excecao-item">
-        <span class="info">Semana ${deFmt} → ${ateFmt}</span>
-        <span class="tag-excecao ${turno === 'A' ? 'a' : 'b'}">${nomeTurno}</span>
-        <button class="danger" onclick="apagarExcecao('${segISO}')">×</button>
-      </div>`;
+  chaves.forEach(seg => {
+    const d = new Date(seg + 'T00:00:00');
+    const turno = excecoes[seg] === 'A' ? confTurnos.nomeA : confTurnos.nomeB;
+    html += `<div class="dia"><span class="info">Semana de ${d.getDate()}/${d.getMonth()+1}</span><span class="tag ${excecoes[seg] === 'A' ? 'turnoA' : 'turnoB'}">${turno}</span><button class="danger" onclick="apagarExcecao('${seg}')" style="width:auto; padding:6px 12px; margin:0;">X</button></div>`;
   });
   lista.innerHTML = html;
 }
 
-function abrirModalDia(dataISO) {
-  if (!dataISO) return;
-
-  try {
-    const d = new Date(dataISO + 'T00:00:00');
-    const nomeDia = d.toLocaleDateString('pt-PT', { weekday: 'long' });
-    const dataFmt = d.toLocaleDateString('pt-PT');
-    const feriado = ehFeriado(dataISO);
-    const feriasDia = ehDiaFerias(dataISO);
-    const turno = turnoDoDia(dataISO);
-    const horasDia = dias[dataISO];
-
-    document.getElementById('modalTitulo').textContent = dataFmt + ' (' + nomeDia + ')';
-
-    let html = '';
-
-    html += `<div class="info-linha">
-      <span>Turno</span>
-      <span>${turno ? `<span class="tag-turno ${turno.codigo === 'A' ? 'a' : 'b'}">${turno.nome}</span>` : '—'}</span>
-    </div>`;
-    if (turno) {
-      html += `<div class="info-linha"><span>Horário</span><span>${turno.inicio} → ${turno.fim}</span></div>`;
-    }
-
-    if (feriado) {
-      html += `<div class="info-linha">
-        <span>Feriado</span>
-        <span><span class="tag-feriado">${feriadoNome(dataISO)}</span></span>
-      </div>`;
-    }
-
-    if (feriasDia) {
-      html += `<div class="info-linha">
-        <span>Férias</span>
-        <span><span class="tag-ferias">Marcado</span></span>
-      </div>`;
-    }
-
-    if (horasDia) {
-      const vh = conf.valorHora;
-      const h25 = horasDia.h25 || 0;
-      const h375 = horasDia.h375 || 0;
-      const h50 = horasDia.h50 || 0;
-      const totalH = h25 + h375 + h50;
-      const euros = h25*vh*1.25 + h375*vh*1.375 + h50*vh*1.50;
-
-      html += `<div class="info-linha"><span>Horas extra</span><span>${totalH}h</span></div>`;
-      if (h25 > 0) html += `<div class="info-linha"><span>· 25%</span><span>${h25}h</span></div>`;
-      if (h375 > 0) html += `<div class="info-linha"><span>· 37,5%</span><span>${h375}h</span></div>`;
-      if (h50 > 0) html += `<div class="info-linha"><span>· 50%</span><span>${h50}h</span></div>`;
-      html += `<div class="info-linha"><span>Valor</span><span><b>${euros.toFixed(2)} €</b></span></div>`;
-    } else {
-      html += `<div class="info-linha"><span>Horas extra</span><span>—</span></div>`;
-    }
-
-    html += `<div class="info-linha">
-      <span>Tipo de dia</span>
-      <span>${ehFimDeSemana(d) ? 'Fim de semana' : (feriado ? 'Feriado' : 'Dia útil')}</span>
-    </div>`;
-
-    document.getElementById('modalConteudo').innerHTML = html;
-    document.getElementById('modalDia').classList.add('ativo');
-  } catch (err) {
-    console.error('Erro ao abrir modal:', err);
-    fecharModalDia();
-  }
-}
-
-function fecharModalDia() {
-  const m = document.getElementById('modalDia');
-  if (m) m.classList.remove('ativo');
-  const c = document.getElementById('modalConteudo');
-  if (c) c.innerHTML = '';
-}
-
 function renderTurnos() {
-  const mesISO = document.getElementById('mesTurnos').value;
-  if (!mesISO) return;
+  const mesISO = document.getElementById('mesTurnos').value; if (!mesISO) return;
   const [ano, mes] = mesISO.split('-').map(Number);
-  const cal = document.getElementById('calendario');
-  cal.innerHTML = '';
-
+  const cal = document.getElementById('calendario'); cal.innerHTML = '';
+  
   ['S','T','Q','Q','S','S','D'].forEach(d => {
-    const div = document.createElement('div');
-    div.className = 'cal-cabecalho';
-    div.textContent = d;
-    cal.appendChild(div);
+    const div = document.createElement('div'); div.style.cssText = 'text-align:center; font-size:10px; font-weight:700; color:var(--texto-fraco); padding:4px 0;'; div.textContent = d; cal.appendChild(div);
   });
 
   const primeiro = new Date(ano, mes - 1, 1);
-  const dowPrimeiro = primeiro.getDay();
-  const offset = (dowPrimeiro === 0 ? 6 : dowPrimeiro - 1);
-
-  for (let i = 0; i < offset; i++) {
-    const div = document.createElement('div');
-    div.className = 'cal-dia vazio';
-    cal.appendChild(div);
-  }
+  const offset = primeiro.getDay() === 0 ? 6 : primeiro.getDay() - 1;
+  for (let i = 0; i < offset; i++) { const d = document.createElement('div'); cal.appendChild(d); }
 
   const ultimoDia = new Date(ano, mes, 0).getDate();
   const hojeISO = formatarData(new Date());
@@ -1723,377 +1166,131 @@ function renderTurnos() {
   for (let d = 1; d <= ultimoDia; d++) {
     const iso = `${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const turno = turnoDoDia(iso);
-    const feriasDia = ehDiaFerias(iso);
     const feriado = ehFeriado(iso);
-    const nomeFer = feriado ? feriadoNomeCurto(iso) : '';
+    const feriasDia = ehDiaFerias(iso);
 
     const div = document.createElement('div');
-    div.className = 'cal-dia';
-    if (turno) div.classList.add(turno.codigo === 'A' ? 'a' : 'b');
-    if (iso === hojeISO) div.classList.add('hoje');
-    if (feriasDia) div.classList.add('ferias');
-    if (feriado) div.classList.add('feriado');
-
-    let html = `<span class="num">${d}</span>`;
-    if (feriado) {
-      html += `<span class="mini-turno mini-feriado">${nomeFer}</span>`;
-    } else if (turno) {
-      html += `<span class="mini-turno">${turno.nome}</span>`;
-    }
-    div.innerHTML = html;
-
+    div.style.cssText = `aspect-ratio:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:12px; font-weight:600; cursor:pointer; border:1.5px solid ${iso === hojeISO ? 'var(--azul)' : 'transparent'}; opacity:${feriasDia ? '0.4' : '1'}; background:${feriado ? 'var(--amarelo-bg)' : (turno ? (turno.codigo === 'A' ? 'var(--turno-a-bg)' : 'var(--turno-b-bg)') : 'var(--input-bg)')}; color:${feriado ? 'var(--amarelo-texto)' : (turno ? (turno.codigo === 'A' ? 'var(--turno-a-texto)' : 'var(--turno-b-texto)') : 'var(--texto')};`;
+    
+    let txt = `<span>${d}</span>`;
+    if (feriado) txt += `<span style="font-size:7px; margin-top:2px;">Feriado</span>`;
+    else if (turno) txt += `<span style="font-size:8px; opacity:0.8; margin-top:2px;">${turno.nome}</span>`;
+    
+    div.innerHTML = txt;
     div.onclick = () => abrirModalDia(iso);
     cal.appendChild(div);
   }
-
-  const listaSemanas = document.getElementById('proximasSemanas');
-  listaSemanas.innerHTML = '';
-  const segAtual = segundaDaSemana(new Date());
-  for (let i = 0; i < 8; i++) {
-    const seg = new Date(segAtual);
-    seg.setDate(seg.getDate() + i * 7);
-    const dom = new Date(seg);
-    dom.setDate(dom.getDate() + 6);
-    const segISO = formatarData(seg);
-    const turno = turnoDoDia(segISO);
-    const temExcecao = excecoes[segISO] ? ' (exceção)' : '';
-    const div = document.createElement('div');
-    div.className = 'semana-linha';
-    div.innerHTML = `
-      <span class="info"><b>${seg.getDate()}/${seg.getMonth()+1}</b> → <b>${dom.getDate()}/${dom.getMonth()+1}</b>${temExcecao}</span>
-      <span>${turno ? `<span class="turno-tag ${turno.codigo === 'A' ? 'a' : 'b'}">${turno.nome}</span>` : ''}</span>
-    `;
-    listaSemanas.appendChild(div);
-  }
 }
 
-const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-               'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-function nomeMes(mesISO) {
-  const [ano, mes] = mesISO.split('-');
-  return MESES[parseInt(mes)-1] + ' ' + ano;
+function abrirModalDia(dataISO) {
+  try {
+    const d = new Date(dataISO + 'T00:00:00');
+    const dataFmt = d.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long' });
+    const feriado = ehFeriado(dataISO);
+    const ferias = ehDiaFerias(dataISO);
+    const turno = turnoDoDia(dataISO);
+    const h = dias[dataISO];
+
+    document.getElementById('modalTitulo').textContent = dataFmt;
+    let html = '';
+
+    if (turno) html += `<div class="info-linha"><span>Turno</span><span>${turno.nome} (${turno.inicio} - ${turno.fim})</span></div>`;
+    if (feriado) html += `<div class="info-linha"><span>Feriado</span><span>${feriadoNome(dataISO)}</span></div>`;
+    if (ferias) html += `<div class="info-linha"><span>Estado</span><span style="color:var(--roxo);">Férias</span></div>`;
+    
+    if (h) {
+      const totalH = (h.h25||0) + (h.h375||0) + (h.h50||0);
+      const euros = (h.h25||0)*conf.valorHora*1.25 + (h.h375||0)*conf.valorHora*1.375 + (h.h50||0)*conf.valorHora*1.5;
+      html += `<div class="info-linha" style="background:var(--input-bg); border-radius:8px; padding:12px; margin-top:12px; border:none;"><span>Horas Extra</span><span>${totalH}h (${euros.toFixed(2)}€)</span></div>`;
+    }
+
+    document.getElementById('modalConteudo').innerHTML = html;
+    document.getElementById('modalDia').classList.add('ativo');
+  } catch (e) { console.error(e); }
 }
 
-function calcularIRSSobreBase(baseTributavel) {
-  if (!TABELA_ATUAL || !TABELA_ATUAL.escaloes.length) {
-    return { irsBase: 0, escalao: null, parcelaAbater: 0, deducaoDep: 0, taxa: 0, taxaEfetiva: 0 };
-  }
-  let escalao = TABELA_ATUAL.escaloes[TABELA_ATUAL.escaloes.length - 1];
-  for (const e of TABELA_ATUAL.escaloes) {
-    if (baseTributavel <= e.limite) { escalao = e; break; }
-  }
-  let parcelaAbater;
-  if (escalao.tipo === 'formula') {
-    parcelaAbater = escalao.coef1 * escalao.coef2 * (escalao.const - baseTributavel);
-    if (parcelaAbater < 0) parcelaAbater = 0;
-  } else {
-    parcelaAbater = escalao.parcela;
-  }
-  const irsBruto = (baseTributavel * escalao.taxa) - parcelaAbater;
-  const deducaoDep = VALOR_POR_DEPENDENTE * conf.dependentes;
-  const irsExato = Math.max(0, irsBruto - deducaoDep);
-  const irsBase = Math.floor(irsExato);
-  return {
-    irsBase, irsExato, escalao, parcelaAbater, deducaoDep,
-    taxa: escalao.taxa,
-    taxaEfetiva: baseTributavel > 0 ? irsBase / baseTributavel : 0
-  };
+function fecharModalDia() {
+  document.getElementById('modalDia').classList.remove('ativo');
 }
 
-function calcularIRS(baseTributavel, totalExtra) {
-  const rBase = calcularIRSSobreBase(baseTributavel);
-  const irsBase = rBase.irsBase;
-  const taxaEfetiva = rBase.taxaEfetiva;
-  let irsExtra = 0, taxaExtra = 0;
-  if (totalExtra > 0 && taxaEfetiva > 0) {
-    taxaExtra = taxaEfetiva * TAXA_TRIBUTAVEL_HORAS_EXTRA;
-    irsExtra = totalExtra * taxaExtra;
-  }
-  return {
-    irs: irsBase + irsExtra, irsBase, irsExtra,
-    taxaEfetivaBase: taxaEfetiva, taxaExtra,
-    escalao: rBase.escalao, parcelaAbater: rBase.parcelaAbater,
-    deducaoDep: rBase.deducaoDep, taxa: rBase.taxa
-  };
-}
-
-function calcularSS(baseTributavel, totalExtra) {
-  return (baseTributavel + totalExtra) * (conf.ssTaxa / 100);
-}
-
-function renderMes() {
-  const mes = document.getElementById('mesAtual').value;
-  if (!mes) return;
-  const vh = conf.valorHora;
-  const va = conf.valorAli;
-
-  const uteis = diasUteisDoMes(mes);
-  const listaUteis = document.getElementById('listaDiasUteis');
-  listaUteis.innerHTML = '';
-  let trabalhados = 0;
-
-  uteis.forEach(iso => {
-    const [a, m, d] = iso.split('-');
-    const feriasDia = ehDiaFerias(iso);
-    const desmarcado = diasDesmarcados.includes(iso) || feriasDia;
-    if (!desmarcado) trabalhados++;
-    const t = turnoDoDia(iso);
-    const div = document.createElement('div');
-    div.className = 'dia-util' + (desmarcado ? ' desmarcado' : '') + (feriasDia ? ' ferias' : '');
-    div.innerHTML = `
-      <input type="checkbox" ${desmarcado ? '' : 'checked'} ${feriasDia ? 'disabled' : ''}
-        onchange="toggleDiaUtil('${iso}')">
-      <span class="data">${d}/${m} ${new Date(iso + 'T00:00:00').toLocaleDateString('pt-PT', { weekday: 'short' })}${t ? ' (' + t.nome + ')' : ''}</span>
-      ${feriasDia ? '<span class="tag">FÉRIAS</span>' : ''}
-      ${ehFeriado(iso) ? `<span class="feriado">${feriadoNome(iso)}</span>` : ''}
-    `;
-    listaUteis.appendChild(div);
-  });
-
-  document.getElementById('resumoDias').innerHTML = `
-    <div class="resumo-dias"><span>Dias úteis no mês</span><b>${uteis.length}</b></div>
-    <div class="resumo-dias"><span>Dias trabalhados</span><b>${trabalhados}</b></div>
-    <div class="resumo-dias"><span>Férias / faltas</span><b>${uteis.length - trabalhados}</b></div>
-  `;
-
-  const fecho = conf.diaFecho || 31;
-  const [anoMes, mesNum] = mes.split('-').map(Number);
-  
-  let dataInicioObj = new Date(anoMes, mesNum - 2, fecho + 1);
-  let dataFimObj = new Date(anoMes, mesNum - 1, fecho);
-
-  const ultimoDiaMesObj = new Date(anoMes, mesNum, 0).getDate();
-  if (fecho > ultimoDiaMesObj && fecho >= 28) {
-      dataFimObj = new Date(anoMes, mesNum - 1, ultimoDiaMesObj);
-  }
-
-  const inicioISO = formatarData(dataInicioObj);
-  const fimISO = formatarData(dataFimObj);
-
-  const doMes = Object.entries(dias)
-    .filter(([d]) => d >= inicioISO && d <= fimISO)
-    .sort();
-
-  let t25 = 0, t375 = 0, t50 = 0, totalHoras = 0;
-  const lista = document.getElementById('listaDias');
-  lista.innerHTML = doMes.length ? '' : '<p style="color:var(--texto-muito-fraco);font-size:13px">Sem registos.</p>';
-
-  doMes.forEach(([data, h]) => {
-    const euros = h.h25*vh*1.25 + h.h375*vh*1.375 + h.h50*vh*1.50;
-    t25 += h.h25; t375 += h.h375; t50 += h.h50;
-    totalHoras += (h.h25 + h.h375 + h.h50);
-    const [a, m, d] = data.split('-');
-    const diaSemana = new Date(data + 'T00:00:00').toLocaleDateString('pt-PT', { weekday: 'short' });
-    const etiqueta = h.h50 > 0
-      ? `<span style="color:var(--vermelho)">50%</span>`
-      : h.h375 > 0
-        ? `<span style="color:var(--verde)">25%+37,5%</span>`
-        : `<span style="color:var(--verde)">25%</span>`;
-    const dia = document.createElement('div');
-    dia.className = 'dia';
-    dia.innerHTML = `
-      <span class="info">${d}/${m} (${diaSemana}) — ${etiqueta} · <b>${euros.toFixed(2)} €</b></span>
-      <span class="botoes">
-        <button class="aviso" onclick="editarDia('${data}')">Editar</button>
-        <button class="danger" onclick="apagarDia('${data}')">×</button>
-      </span>`;
-    lista.appendChild(dia);
-  });
-
-  const base = conf.ordenadoBase;
-  const euros25  = t25  * vh * 1.25;
-  const euros375 = t375 * vh * 1.375;
-  const euros50  = t50  * vh * 1.50;
-  const totalExtra = euros25 + euros375 + euros50;
-  const alimentacao = trabalhados * va;
-  const totalAbonos = base + totalExtra + alimentacao;
-  const calcIRS = calcularIRS(base, totalExtra);
-  const irs = calcIRS.irs;
-  const ss  = calcularSS(base, totalExtra);
-  const totalDescontos = irs + ss;
-  const liquido = totalAbonos - totalDescontos;
-  const escalaTxt = calcIRS.escalao
-    ? `Tabela ${conf.situacao} · taxa efetiva base ${(calcIRS.taxaEfetivaBase*100).toFixed(4)}% · horas extra a 50% desta`
-    : 'Tabela IRS não carregada';
-
-  document.getElementById('recibo').innerHTML = `
-    <div class="recibo">
-      <h3>Recibo de Vencimento</h3>
-      <div class="subtitulo">${nomeMes(mes)} · ${conf.dependentes} dep. · Tabela ${conf.situacao}</div>
-
-      <div class="secao">Abonos</div>
-      <div class="linha"><span>Vencimento base</span><span>${base.toFixed(2)} €</span></div>
-      ${t25 > 0 ? `<div class="linha"><span>HE 25% (${t25}h)</span><span>${euros25.toFixed(2)} €</span></div>` : ''}
-      ${t375 > 0 ? `<div class="linha"><span>HE 37,5% (${t375}h)</span><span>${euros375.toFixed(2)} €</span></div>` : ''}
-      ${t50 > 0 ? `<div class="linha"><span>HE 50% (${t50}h)</span><span>${euros50.toFixed(2)} €</span></div>` : ''}
-      <div class="linha"><span>Alimentação (${trabalhados}×${va.toFixed(2)} €)</span><span>${alimentacao.toFixed(2)} €</span></div>
-      <div class="linha total"><span>Total de abonos</span><span>${totalAbonos.toFixed(2)} €</span></div>
-
-      <div class="secao">Descontos</div>
-      <div class="linha desc">
-        <span>IRS — base (${(calcIRS.taxaEfetivaBase*100).toFixed(4)}%)</span>
-        <span>-${calcIRS.irsBase.toFixed(2)} €</span>
-      </div>
-      ${totalExtra > 0 ? `
-      <div class="linha desc">
-        <span>IRS — HE (${(calcIRS.taxaExtra*100).toFixed(4)}%)</span>
-        <span>-${calcIRS.irsExtra.toFixed(2)} €</span>
-      </div>` : ''}
-      <div class="linha desc"><span>Seg. Social (${conf.ssTaxa}%)</span><span>-${ss.toFixed(2)} €</span></div>
-      <div class="linha total"><span>Total descontos</span><span>-${totalDescontos.toFixed(2)} €</span></div>
-
-      <div class="linha liquido"><span>Líquido</span><span>${liquido.toFixed(2)} €</span></div>
-
-      <div class="info-extra">${trabalhados} dias · ${totalHoras.toFixed(2)}h extra</div>
-      <div class="info-escalao">${escalaTxt}</div>
-    </div>
-  `;
-}
-
+/* ============================================================
+   HISTÓRICO E CONFIGURAÇÕES
+   ============================================================ */
 function renderHist() {
   const fecho = conf.diaFecho || 31;
-  
   const mesesAgrupados = {};
   
   Object.entries(dias).forEach(([data, h]) => {
     const dObj = new Date(data + 'T00:00:00');
-    let ano = dObj.getFullYear();
-    let mes = dObj.getMonth() + 1;
-    let dia = dObj.getDate();
-
-    if (dia > fecho) {
-      mes++;
-      if (mes > 12) {
-        mes = 1;
-        ano++;
-      }
-    }
-    
-    const mesChave = `${ano}-${String(mes).padStart(2, '0')}`;
-    if (!mesesAgrupados[mesChave]) {
-      mesesAgrupados[mesChave] = { h25:0, h375:0, h50:0, dias:0 };
-    }
-    mesesAgrupados[mesChave].h25 += h.h25 || 0;
-    mesesAgrupados[mesChave].h375 += h.h375 || 0;
-    mesesAgrupados[mesChave].h50 += h.h50 || 0;
-    mesesAgrupados[mesChave].dias++;
+    let ano = dObj.getFullYear(); let mes = dObj.getMonth() + 1; let dia = dObj.getDate();
+    if (dia > fecho) { mes++; if (mes > 12) { mes = 1; ano++; } }
+    const chave = `${ano}-${String(mes).padStart(2, '0')}`;
+    if (!mesesAgrupados[chave]) mesesAgrupados[chave] = { h25:0, h375:0, h50:0 };
+    mesesAgrupados[chave].h25 += h.h25 || 0; mesesAgrupados[chave].h375 += h.h375 || 0; mesesAgrupados[chave].h50 += h.h50 || 0;
   });
 
-  const vh = conf.valorHora;
-  const va = conf.valorAli;
-  const base = conf.ordenadoBase;
-  const lista = document.getElementById('listaHist');
+  const vh = conf.valorHora; const va = conf.valorAli; const base = conf.ordenadoBase;
   const chaves = Object.keys(mesesAgrupados).sort().reverse();
+  const lista = document.getElementById('listaHist');
 
-  if (!chaves.length) { lista.innerHTML = '<p style="color:var(--texto-muito-fraco)">Sem histórico.</p>'; return; }
+  if (!chaves.length) { lista.innerHTML = '<p style="text-align:center; font-size:13px; color:var(--texto-fraco);">Sem histórico.</p>'; return; }
 
   let html = '';
   chaves.forEach(mes => {
     const m = mesesAgrupados[mes];
     const totalH = m.h25 + m.h375 + m.h50;
-    const euros  = m.h25*vh*1.25 + m.h375*vh*1.375 + m.h50*vh*1.5;
-    
+    const euros = m.h25*vh*1.25 + m.h375*vh*1.375 + m.h50*vh*1.5;
     const uteis = diasUteisDoMes(mes);
     const trabalhados = uteis.filter(iso => !diasDesmarcados.includes(iso) && !ehDiaFerias(iso)).length;
-    const ali = trabalhados * va;
+    const bruto = base + euros + (trabalhados * va);
+    const calcIRS = calcularIRS(base, euros);
+    const ss = (base + euros) * (conf.ssTaxa / 100);
+    const liq = bruto - (calcIRS.irs + ss);
     
-    const bruto  = base + euros + ali;
-    const irs    = calcularIRS(base, euros).irs;
-    const ss     = calcularSS(base, euros);
-    const liq    = bruto - irs - ss;
+    const dataM = new Date(mes + '-02T00:00:00');
+    const nomeM = dataM.toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
 
-    html += `
-      <div class="dia">
-        <span>${nomeMes(mes)} <small style="color:var(--texto-muito-fraco)">(${totalH.toFixed(2)}h)</small></span>
-        <span><b>${liq.toFixed(2)} €</b></span>
-      </div>`;
+    html += `<div class="dia"><span class="info" style="text-transform:capitalize;">${nomeM} <small style="color:var(--texto-fraco); font-size:11px; display:block; font-weight:400; margin-top:2px;">${totalH}h extra</small></span><span style="font-weight:800; color:var(--azul); font-size:16px;">${liq.toFixed(2)} €</span></div>`;
   });
   lista.innerHTML = html;
-}
-
-function renderTabelaInfo() {
-  const aviso = document.getElementById('avisoTabela');
-  const div = document.getElementById('tabelaInfo');
-
-  if (!TABELA_CARREGADA) {
-    aviso.classList.add('ativo');
-    aviso.innerHTML = '⚠️ Não foi possível carregar <b>tabela-irs.json</b>. A usar valores por defeito de 2026.';
-  } else {
-    aviso.classList.remove('ativo');
-    aviso.innerHTML = '';
-  }
-
-  let html = '';
-  if (TABELA_ANO) {
-    html += `<p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px"><b>${TABELA_ANO} · Tabela ${conf.situacao}</b></p>`;
-  }
-  html += '<table style="width:100%;border-collapse:collapse;font-size:10.5px">';
-  html += '<tr style="background:var(--azul-claro)"><th style="text-align:left;padding:3px">Até</th><th style="text-align:right;padding:3px">Taxa</th><th style="text-align:right;padding:3px">Abater</th></tr>';
-  if (TABELA_ATUAL) {
-    TABELA_ATUAL.escaloes.forEach(e => {
-      const lim = e.limite === Infinity ? '∞' : e.limite.toFixed(0);
-      const parc = e.tipo === 'formula' ? 'fórmula' : e.parcela.toFixed(2);
-      html += `<tr><td style="padding:3px">${lim}</td><td style="text-align:right;padding:3px">${(e.taxa*100).toFixed(2)}%</td><td style="text-align:right;padding:3px">${parc}</td></tr>`;
-    });
-  }
-  html += '</table>';
-  html += `<p style="font-size:11px;color:var(--texto-fraco);margin-top:6px">Por dependente: <b>${VALOR_POR_DEPENDENTE.toFixed(2)} €</b>/mês</p>`;
-  div.innerHTML = html;
 }
 
 function guardarConf() {
   conf.ordenadoBase = +document.getElementById('ordenadoBase').value;
   conf.horasSemanais = +document.getElementById('horasSemanais').value;
-  conf.valorHora    = +document.getElementById('valorHoraConf').value;
-  conf.valorAli     = +document.getElementById('valorAliConf').value;
-  conf.diasUteis    = +document.getElementById('diasUteis').value;
-  conf.diaFecho     = +document.getElementById('diaFecho').value || 31;
-  conf.situacao     = document.getElementById('situacao').value;
-  conf.dependentes  = +document.getElementById('dependentes').value;
-  conf.ssTaxa       = +document.getElementById('ssTaxa').value;
+  conf.valorHora = +document.getElementById('valorHoraConf').value;
+  conf.valorAli = +document.getElementById('valorAliConf').value;
+  conf.diaFecho = +document.getElementById('diaFecho').value || 31;
+  conf.situacao = document.getElementById('situacao').value;
+  conf.dependentes = +document.getElementById('dependentes').value;
+  conf.ssTaxa = +document.getElementById('ssTaxa').value;
   conf.feriadoMunicipalData = document.getElementById('feriadoMunicipalData').value;
   conf.feriadoMunicipalNome = document.getElementById('feriadoMunicipalNome').value;
   conf.valorHoraManual = valorHoraManual;
-  salvarConf();
-  selecionarTabela(conf.situacao);
-  document.getElementById('valorHora').value = conf.valorHora;
-  document.getElementById('valorAli').value  = conf.valorAli;
-  alert('Guardado!');
-  renderTabelaInfo();
-  renderMes();
-  renderHist();
-  renderTurnos();
+  salvarConf(); selecionarTabela(conf.situacao);
+  alert('Configurações guardadas!');
+  renderMes(); renderHist();
+}
+
+function renderTabelaInfo() {
+  // Mantido apenas para compatibilidade
 }
 
 function fazerBackup() {
-  const dados = {
-    versao: 3, data: new Date().toISOString(),
-    conf, confTurnos, excecoes, dias, diasDesmarcados, ferias
-  };
+  const dados = { versao: 4, data: new Date().toISOString(), conf, confTurnos, excecoes, dias, diasDesmarcados, ferias };
   const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const hoje = new Date().toISOString().slice(0,10);
-  a.href = url;
-  a.download = `banco-horas-backup-${hoje}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href = url; a.download = `backup-banco-horas-${formatarData(new Date())}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
 function carregarBackup(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  if (!confirm('Carregar backup?\n\nIsto vai substituir TODOS os dados atuais.')) {
-    event.target.value = '';
-    return;
-  }
+  const file = event.target.files[0]; if (!file) return;
+  if (!confirm('Substituir os dados atuais pelo backup?')) { event.target.value = ''; return; }
   const reader = new FileReader();
   reader.onload = e => {
     try {
       const dados = JSON.parse(e.target.result);
-      if (!dados || typeof dados !== 'object') throw new Error('Ficheiro inválido');
       if (dados.conf) { conf = Object.assign(conf, dados.conf); salvarConf(); }
       if (dados.confTurnos) { confTurnos = Object.assign(confTurnos, dados.confTurnos); salvarConfTurnos(); }
       if (dados.excecoes) { excecoes = dados.excecoes; salvarExcecoes(); }
@@ -2103,70 +1300,28 @@ function carregarBackup(event) {
       valorHoraManual = conf.valorHoraManual || false;
       selecionarTabela(conf.situacao || 'I');
       localStorage.setItem(LS.configurado, 'true');
-      document.getElementById('ecraBoasVindas').classList.add('hide');
-      document.getElementById('appPrincipal').classList.remove('hide');
-      preencherCamposApp();
-      preencherCamposTurnos();
-      renderTabelaInfo();
-      renderFerias();
-      renderMes();
-      renderHist();
-      renderTurnos();
-      renderExcecoes();
       alert('Backup carregado com sucesso!');
-    } catch (err) {
-      alert('Erro ao carregar o backup:\n' + err.message);
-    }
+      location.reload();
+    } catch (err) { alert('Erro: ' + err.message); }
     event.target.value = '';
   };
   reader.readAsText(file);
 }
 
 function apagarTudo() {
-  if (!confirm('Apagar TODOS os dados? Isto não pode ser desfeito.')) return;
-  if (!confirm('Tens a certeza? Recomendo fazeres um backup primeiro.')) return;
-  localStorage.removeItem(LS.dias);
-  localStorage.removeItem(LS.diasTrabalhados);
-  localStorage.removeItem(LS.ferias);
-  localStorage.removeItem(LS.conf);
-  localStorage.removeItem(LS.turnos);
-  localStorage.removeItem(LS.excecoes);
-  localStorage.removeItem(LS.configurado);
-  alert('Dados apagados. A app vai recomeçar.');
-  location.reload();
+  if (!confirm('Apagar TODOS os dados?')) return;
+  if (!confirm('Tens a certeza absoluta?')) return;
+  localStorage.clear(); location.reload();
 }
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(err => {
-      console.log('SW não registado:', err);
-    });
-  });
-}
+/* Guardar dados localmente */
+function salvarDias() { localStorage.setItem(LS.dias, JSON.stringify(dias)); }
+function salvarConf() { localStorage.setItem(LS.conf, JSON.stringify(conf)); }
+function salvarConfTurnos() { localStorage.setItem(LS.turnos, JSON.stringify(confTurnos)); }
+function salvarDiasDesmarcados() { localStorage.setItem(LS.diasTrabalhados, JSON.stringify(diasDesmarcados)); }
+function salvarExcecoes() { localStorage.setItem(LS.excecoes, JSON.stringify(excecoes)); }
+function salvarFerias() { localStorage.setItem(LS.ferias, JSON.stringify(ferias)); }
 
-let promptInstalar = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  promptInstalar = e;
-  const btn = document.getElementById('btnInstalar');
-  if (btn) btn.classList.remove('hide');
-});
-
-function instalarApp() {
-  if (!promptInstalar) return;
-  promptInstalar.prompt();
-  promptInstalar.userChoice.then(choice => {
-    if (choice.outcome === 'accepted') {
-      document.getElementById('btnInstalar').classList.add('hide');
-    }
-    promptInstalar = null;
-  });
-}
-
-window.addEventListener('appinstalled', () => {
-  const btn = document.getElementById('btnInstalar');
-  if (btn) btn.classList.add('hide');
-});
 </script>
 </body>
 </html>
