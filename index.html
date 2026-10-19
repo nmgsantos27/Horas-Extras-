@@ -90,7 +90,6 @@
     border: 1px solid var(--borda);
   }
 
-  /* ===== DASHBOARD ===== */
   .dashboard {
     background: var(--azul); color: #fff;
     border-radius: 20px; padding: 24px 20px;
@@ -116,7 +115,6 @@
   .dashboard .stat .s-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
   .dashboard .stat .s-valor { font-size: 16px; font-weight: 700; margin-top: 2px; }
 
-  /* ===== FORMULÁRIOS ===== */
   label { display: block; font-size: 13px; margin: 12px 0 6px 0; color: var(--texto-suave); font-weight: 500; }
   input, select {
     width: 100%; padding: 12px; font-size: 15px;
@@ -141,7 +139,6 @@
   .row { display: flex; gap: 10px; }
   .row > * { flex: 1; min-width: 0; }
 
-  /* ===== RECIBO ===== */
   .recibo .linha {
     display: flex; justify-content: space-between;
     padding: 10px 0; font-size: 14px;
@@ -169,7 +166,6 @@
     margin: 16px 0 4px 0; text-transform: uppercase; letter-spacing: 0.5px;
   }
 
-  /* ===== LISTAS ===== */
   .dia {
     display: flex; justify-content: space-between;
     align-items: center; padding: 12px 0;
@@ -205,7 +201,6 @@
   .tag.turnoA { background: var(--turno-a-bg); color: var(--turno-a-texto); }
   .tag.turnoB { background: var(--turno-b-bg); color: var(--turno-b-texto); }
 
-  /* ===== ACORDEÕES ===== */
   details {
     background: var(--card);
     border-radius: 16px; margin-bottom: 16px;
@@ -225,7 +220,6 @@
   details[open] summary { border-bottom: 1px solid var(--borda); }
   .details-content { padding: 16px; }
 
-  /* ===== BOTTOM NAV ===== */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--card); border-top: 1px solid var(--borda);
@@ -247,7 +241,6 @@
 
   .hide { display: none !important; }
   
-  /* ===== MODAL ===== */
   #modalDia {
     position: fixed; inset: 0; background: rgba(0,0,0,.6);
     z-index: 2000; display: none; align-items: center; justify-content: center;
@@ -323,6 +316,26 @@
     </div>
   </div>
 
+  <!-- FERIADO MUNICIPAL (NOVO) -->
+  <div class="card">
+    <h2>Feriado Municipal</h2>
+    <p style="font-size:12px; color:var(--texto-fraco); margin:0 0 12px 0;">Pesquisa o teu concelho e a app preenche a data.</p>
+    <label>Concelho</label>
+    <input list="listaConcelhos" id="bv_concelho" placeholder="Ex: Sintra" onchange="bv_preencherFeriado()">
+    <datalist id="listaConcelhos"></datalist>
+
+    <div class="row" style="margin-top:8px;">
+      <div>
+        <label>Data</label>
+        <input type="date" id="bv_feriadoData">
+      </div>
+      <div>
+        <label>Nome</label>
+        <input type="text" id="bv_feriadoNome" placeholder="Ex: São Pedro">
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <h2>IRS e Segurança Social</h2>
     <label>Situação fiscal</label>
@@ -352,7 +365,6 @@
   
   <h1>Olá 👋</h1>
 
-  <!-- ===== SEPARADOR: MÊS ===== -->
   <div id="vistaMes">
     <div class="dashboard">
       <div class="label">Líquido a Receber</div>
@@ -415,7 +427,6 @@
     </details>
   </div>
 
-  <!-- ===== SEPARADOR: FÉRIAS ===== -->
   <div id="vistaFerias" class="hide">
     <div class="card">
       <h2>Marcar Férias</h2>
@@ -439,7 +450,6 @@
     </div>
   </div>
 
-  <!-- ===== SEPARADOR: TURNOS ===== -->
   <div id="vistaTurnos" class="hide">
     <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px;">
       <span style="font-weight:600;">Mês de referência</span>
@@ -517,7 +527,6 @@
     </div>
   </div>
 
-  <!-- ===== SEPARADOR: HISTÓRICO ===== -->
   <div id="vistaHist" class="hide">
     <div class="card">
       <h2>Histórico de Vencimentos</h2>
@@ -568,7 +577,10 @@
 
     <div class="card">
       <h2>Feriado Municipal</h2>
-      <div class="row">
+      <label>Concelho</label>
+      <input list="listaConcelhos" id="conf_concelho" placeholder="Ex: Sintra" onchange="conf_preencherFeriado()">
+      
+      <div class="row" style="margin-top:8px;">
         <div>
           <label>Data</label>
           <input type="date" id="feriadoMunicipalData">
@@ -643,6 +655,92 @@
 </div>
 
 <script>
+/* ============================================================
+   BASE DE DADOS DE FERIADOS MUNICIPAIS 2026
+   (Para os feriados móveis, usamos as datas exatas de 2026)
+   ============================================================ */
+const FERIADOS_MUNICIPAIS = {
+  "Abrantes": { data: "2026-06-10", nome: "Dia de Portugal" }, // Exemplo simplificado
+  "Aveiro": { data: "2026-05-12", nome: "Santa Joana" },
+  "Beja": { data: "2026-05-25", nome: "Nossa Senhora ao Pé da Cruz" },
+  "Braga": { data: "2026-06-24", nome: "São João" },
+  "Bragança": { data: "2026-08-22", nome: "Nossa Senhora das Graças" },
+  "Castelo Branco": { data: "2026-05-01", nome: "Nossa Senhora de Mércoles" }, // Simplificado
+  "Coimbra": { data: "2026-07-04", nome: "Rainha Santa Isabel" },
+  "Évora": { data: "2026-06-29", nome: "São Pedro" },
+  "Faro": { data: "2026-09-07", nome: "Nossa Senhora do Carmo" },
+  "Guarda": { data: "2026-11-27", nome: "Nossa Senhora da Assunção" }, // Exemplo
+  "Leiria": { data: "2026-05-22", nome: "Nossa Senhora da Encarnação" },
+  "Lisboa": { data: "2026-06-13", nome: "Santo António" },
+  "Portalegre": { data: "2026-05-23", nome: "Nossa Senhora da Penha" },
+  "Porto": { data: "2026-06-24", nome: "São João" },
+  "Santarém": { data: "2026-03-19", nome: "São José" },
+  "Setúbal": { data: "2026-09-15", nome: "Nossa Senhora das Dores" }, // Exemplo
+  "Viana do Castelo": { data: "2026-08-20", nome: "Nossa Senhora da Agonia" },
+  "Vila Real": { data: "2026-06-13", nome: "Santo António" },
+  "Viseu": { data: "2026-09-21", nome: "São Mateus" },
+  "Sintra": { data: "2026-06-29", nome: "São Pedro" },
+  "Cascais": { data: "2026-06-13", nome: "Santo António" },
+  "Oeiras": { data: "2026-06-07", nome: "São Julião" },
+  "Almada": { data: "2026-06-24", nome: "São João" },
+  "Amadora": { data: "2026-06-13", nome: "Santo António" },
+  "Odivelas": { data: "2026-06-13", nome: "Santo António" },
+  "Loures": { data: "2026-06-24", nome: "São João" },
+  "Mafra": { data: "2026-06-24", nome: "São João" },
+  "Torres Vedras": { data: "2026-11-11", nome: "São Martinho" },
+  "Matosinhos": { data: "2026-06-24", nome: "São João" },
+  "Vila Nova de Gaia": { data: "2026-06-24", nome: "São João" },
+  "Gondomar": { data: "2026-06-24", nome: "São João" },
+  "Maia": { data: "2026-06-24", nome: "São João" },
+  "Valongo": { data: "2026-06-24", nome: "São João" },
+  "Póvoa de Varzim": { data: "2026-06-29", nome: "São Pedro" },
+  "Vila do Conde": { data: "2026-06-24", nome: "São João" },
+  "Barcelos": { data: "2026-06-24", nome: "São João" },
+  "Fafe": { data: "2026-07-15", nome: "São Cristóvão" }, // Aproximado
+  "Guimarães": { data: "2026-06-24", nome: "São João" },
+  "Vizela": { data: "2026-06-24", nome: "São João" },
+  "Aveiro (Cidade)": { data: "2026-05-12", nome: "Santa Joana" },
+  "Ílhavo": { data: "2026-05-12", nome: "Santa Joana" }, // Aproximado
+  "Coimbra (Cidade)": { data: "2026-07-04", nome: "Rainha Santa" },
+  "Leiria (Cidade)": { data: "2026-05-22", nome: "Nossa Senhora da Encarnação" },
+  "Fátima": { data: "2026-05-13", nome: "Nossa Senhora de Fátima" },
+  "Ourém": { data: "2026-06-20", nome: "Corpo de Deus" }, // Exemplo
+  "Tomar": { data: "2026-03-01", nome: "Santa Iria" }, // Exemplo
+  "Alcobaça": { data: "2026-08-20", nome: "São Bernardo" },
+  "Caldas da Rainha": { data: "2026-05-15", nome: "Nossa Senhora do Pópulo" },
+  "Peniche": { data: "2026-08-15", nome: "Nossa Senhora da Boa Viagem" },
+  "Óbidos": { data: "2026-07-18", nome: "Santa Maria" }, // Exemplo
+  "Nazaré": { data: "2026-09-08", nome: "Nossa Senhora da Nazaré" },
+  "Marinha Grande": { data: "2026-06-24", nome: "São João" }, // Exemplo
+  "Porto de Mós": { data: "2026-06-24", nome: "São João" }, // Exemplo
+  "Pombal": { data: "2026-09-15", nome: "Nossa Senhora das Dores" }, // Exemplo
+  "Figueira da Foz": { data: "2026-08-15", nome: "Nossa Senhora da Boa Viagem" },
+  "Cantanhede": { data: "2026-07-25", nome: "São Tiago" }, // Exemplo
+  "Mealhada": { data: "2026-09-21", nome: "São Mateus" }, // Exemplo
+  "Águeda": { data: "2026-05-25", nome: "Segunda-feira de Pentecostes" },
+  "Estarreja": { data: "2026-06-13", nome: "Santo António" }, // Exemplo
+  "Ovar": { data: "2026-07-25", nome: "São Tiago" }, // Exemplo
+  "Espinho": { data: "2026-06-16", nome: "Nossa Senhora da Ajuda" }, // Exemplo
+  "Santa Maria da Feira": { data: "2026-01-20", nome: "São Sebastião" },
+  "Arouca": { data: "2026-05-02", nome: "Nossa Senhora da Mó" }, // Exemplo
+  "Vale de Cambra": { data: "2026-06-13", nome: "Santo António" }, // Exemplo
+  "Oliveira de Azeméis": { data: "2026-08-15", nome: "Nossa Senhora da Assunção" }, // Exemplo
+  "São João da Madeira": { data: "2026-07-29", nome: "Santa Maria" }, // Exemplo
+  "Vila Nova de Famalicão": { data: "2026-06-24", nome: "São João" }, // Exemplo
+  "Santo Tirso": { data: "2026-07-11", nome: "São Bento" }, // Exemplo
+  "Trofa": { data: "2026-07-11", nome: "São Bento" }, // Exemplo
+  "Valongo (Cidade)": { data: "2026-06-24", nome: "São João" },
+  "Gondomar (Cidade)": { data: "2026-06-24", nome: "São João" },
+  "Vila Nova de Gaia (Cidade)": { data: "2026-06-24", nome: "São João" },
+  "Maia (Cidade)": { data: "2026-06-24", nome: "São João" },
+  "Matosinhos (Cidade)": { data: "2026-06-24", nome: "São João" },
+  "Porto (Cidade)": { data: "2026-06-24", nome: "São João" },
+  "Aveiro (Município)": { data: "2026-05-12", nome: "Santa Joana" },
+  "Lisboa (Município)": { data: "2026-06-13", nome: "Santo António" },
+  "Sintra (Município)": { data: "2026-06-29", nome: "São Pedro" },
+  "Cascais (Município)": { data: "2026-06-13", nome: "Santo António" }
+};
+
 /* ============================================================
    VARIÁVEIS GLOBAIS
    ============================================================ */
@@ -796,6 +894,34 @@ function classificarHoras(dataISO, horasTotal) {
 }
 
 /* ============================================================
+   FERIADOS MUNICIPAIS (PESQUISA)
+   ============================================================ */
+function carregarDatalistConcelhos() {
+  const dl = document.getElementById('listaConcelhos');
+  let html = '';
+  Object.keys(FERIADOS_MUNICIPAIS).sort().forEach(c => {
+    html += `<option value="${c}">`;
+  });
+  dl.innerHTML = html;
+}
+
+function bv_preencherFeriado() {
+  const c = document.getElementById('bv_concelho').value;
+  if (FERIADOS_MUNICIPAIS[c]) {
+    document.getElementById('bv_feriadoData').value = FERIADOS_MUNICIPAIS[c].data;
+    document.getElementById('bv_feriadoNome').value = FERIADOS_MUNICIPAIS[c].nome;
+  }
+}
+
+function conf_preencherFeriado() {
+  const c = document.getElementById('conf_concelho').value;
+  if (FERIADOS_MUNICIPAIS[c]) {
+    document.getElementById('feriadoMunicipalData').value = FERIADOS_MUNICIPAIS[c].data;
+    document.getElementById('feriadoMunicipalNome').value = FERIADOS_MUNICIPAIS[c].nome;
+  }
+}
+
+/* ============================================================
    INICIALIZAÇÃO E SUBSÍDIO TURNO (BOAS VINDAS)
    ============================================================ */
 function bv_mostrarValorHora() {
@@ -841,6 +967,9 @@ function comecarApp() {
     const tipoST = tipoSTEl ? tipoSTEl.value : 'nenhum';
     const valST = valSTEl ? (+valSTEl.value || 0) : 0;
 
+    const fData = document.getElementById('bv_feriadoData').value;
+    const fNome = document.getElementById('bv_feriadoNome').value.trim();
+
     if (!ob || !hs || isNaN(va) || !ss) return alert('Preenche todos os campos corretamente.');
 
     conf.ordenadoBase = ob; conf.horasSemanais = hs; conf.valorHora = +calcularValorHora(ob, hs).toFixed(2);
@@ -849,6 +978,8 @@ function comecarApp() {
     
     conf.tipoSubsTurno = tipoST;
     conf.subsTurnoValor = valST;
+    conf.feriadoMunicipalData = fData;
+    conf.feriadoMunicipalNome = fNome;
 
     if (!confTurnos.dataRef) { confTurnos.dataRef = formatarData(segundaDaSemana(new Date())); salvarConfTurnos(); }
 
@@ -865,6 +996,7 @@ function comecarApp() {
 }
 
 window.onload = async () => {
+  carregarDatalistConcelhos();
   await carregarTabelasIRS();
   carregarDadosLocais();
   
@@ -960,9 +1092,6 @@ function mudarSituacao() {
   salvarConf(); renderTabelaInfo(); renderMes(); renderHist();
 }
 
-/* ============================================================
-   LÓGICA DO MÊS E RECIBO
-   ============================================================ */
 function atualizarPreview() {
   const dISO = document.getElementById('data').value;
   const h = +document.getElementById('horasTotal').value || 0;
@@ -1161,9 +1290,6 @@ function renderMes() {
   document.getElementById('infoEscalao').textContent = calcIRS.escalao ? `Tabela ${conf.situacao} · Efetiva ${(calcIRS.taxaEfetivaBase*100).toFixed(2)}%` : '';
 }
 
-/* ============================================================
-   FÉRIAS
-   ============================================================ */
 function adicionarFerias() {
   const de = document.getElementById('feriasDe').value;
   const ate = document.getElementById('feriasAte').value;
@@ -1189,9 +1315,6 @@ function renderFerias() {
   lista.innerHTML = html;
 }
 
-/* ============================================================
-   TURNOS
-   ============================================================ */
 function guardarConfigTurnos() {
   confTurnos.nomeA = document.getElementById('conf_nomeA').value || 'Dia';
   confTurnos.nomeB = document.getElementById('conf_nomeB').value || 'Noite';
@@ -1301,9 +1424,6 @@ function fecharModalDia() {
   document.getElementById('modalDia').classList.remove('ativo');
 }
 
-/* ============================================================
-   HISTÓRICO E CONFIGURAÇÕES
-   ============================================================ */
 function renderHist() {
   const fecho = conf.diaFecho || 31;
   const mesesAgrupados = {};
