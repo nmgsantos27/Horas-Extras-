@@ -118,20 +118,25 @@
     font-size: 11px; border-radius: 5px;
   }
 
+  /* ===== TABS ===== */
   .tabs {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
     gap: 4px;
     margin-bottom: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
   }
+  .tabs::-webkit-scrollbar { display: none; }
   .tabs button {
+    flex: 1 0 auto;
+    min-width: 65px;
     margin: 0;
     background: var(--azul-claro); color: var(--texto);
     font-weight: 500; padding: 9px 4px;
-    font-size: 12px;
+    font-size: 11.5px;
     white-space: nowrap;
-    width: 100%;
-    min-width: 0;
   }
   .tabs button.active { background: var(--azul); color: #fff; }
 
@@ -683,6 +688,7 @@
   <div class="tabs">
     <button id="tabMes" class="active" onclick="mudarTab('mes')">Mês</button>
     <button id="tabTurnos" onclick="mudarTab('turnos')">Turnos</button>
+    <button id="tabFerias" onclick="mudarTab('ferias')">Férias</button>
     <button id="tabHist" onclick="mudarTab('hist')">Histórico</button>
     <button id="tabConf" onclick="mudarTab('conf')">Config</button>
   </div>
@@ -719,28 +725,9 @@
     </div>
 
     <div class="card">
-      <h2 style="margin-top:0">Férias marcadas</h2>
-      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
-        Durante as férias <b>não</b> recebes subsídio de alimentação (lei portuguesa).
-      </p>
-      <div class="row">
-        <div>
-          <label>De</label>
-          <input type="date" id="feriasDe">
-        </div>
-        <div>
-          <label>Até</label>
-          <input type="date" id="feriasAte">
-        </div>
-      </div>
-      <button class="verde" onclick="adicionarFerias()">+ Adicionar férias</button>
-      <div id="listaFerias" style="margin-top:8px"></div>
-    </div>
-
-    <div class="card">
       <h2 style="margin-top:0">Dias úteis do mês</h2>
       <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
-        Os dias de férias aparecem a roxo. Podes ainda desmarcar dias pontuais (faltas).
+        Desmarca os dias em que faltaste para descontar o subsídio.
       </p>
       <div id="listaDiasUteis"></div>
       <div id="resumoDias" style="margin-top:8px"></div>
@@ -847,6 +834,32 @@
     <div class="card">
       <h2 style="margin-top:0">Próximas 8 semanas</h2>
       <div id="proximasSemanas"></div>
+    </div>
+  </div>
+
+  <!-- NOVO SEPARADOR DE FÉRIAS -->
+  <div id="vistaFerias" class="hide">
+    <div class="card">
+      <h2 style="margin-top:0">Marcar Férias</h2>
+      <p style="font-size:11.5px;color:var(--texto-fraco);margin:0 0 6px">
+        Durante as férias <b>não</b> recebes subsídio de alimentação (lei portuguesa).
+      </p>
+      <div class="row">
+        <div>
+          <label>De</label>
+          <input type="date" id="feriasDe">
+        </div>
+        <div>
+          <label>Até</label>
+          <input type="date" id="feriasAte">
+        </div>
+      </div>
+      <button class="verde" onclick="adicionarFerias()">+ Adicionar férias</button>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Férias Marcadas</h2>
+      <div id="listaFerias"></div>
     </div>
   </div>
 
@@ -1383,7 +1396,7 @@ function preencherCamposTurnos() {
 }
 
 function mudarTab(t) {
-  ['mes','turnos','hist','conf'].forEach(x => {
+  ['mes','turnos','ferias','hist','conf'].forEach(x => {
     document.getElementById('vista' + x.charAt(0).toUpperCase() + x.slice(1))
       .classList.toggle('hide', x !== t);
     document.getElementById('tab' + x.charAt(0).toUpperCase() + x.slice(1))
@@ -1391,6 +1404,7 @@ function mudarTab(t) {
   });
   if (t === 'hist') renderHist();
   if (t === 'turnos') { renderTurnos(); renderExcecoes(); }
+  if (t === 'ferias') renderFerias();
 }
 
 function atualizarPreview() {
@@ -1986,7 +2000,6 @@ function renderHist() {
     const totalH = m.h25 + m.h375 + m.h50;
     const euros  = m.h25*vh*1.25 + m.h375*vh*1.375 + m.h50*vh*1.5;
     
-    // Para o subsídio, usamos os dias úteis normais do mês (aproximação)
     const uteis = diasUteisDoMes(mes);
     const trabalhados = uteis.filter(iso => !diasDesmarcados.includes(iso) && !ehDiaFerias(iso)).length;
     const ali = trabalhados * va;
