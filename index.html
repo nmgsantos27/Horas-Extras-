@@ -90,7 +90,7 @@
     border: 1px solid var(--borda);
   }
 
-  /* ===== DASHBOARD (ECRÃ PRINCIPAL) ===== */
+  /* ===== DASHBOARD ===== */
   .dashboard {
     background: var(--azul); color: #fff;
     border-radius: 20px; padding: 24px 20px;
@@ -142,7 +142,7 @@
   .row { display: flex; gap: 10px; }
   .row > * { flex: 1; min-width: 0; }
 
-  /* ===== RECIBO (EXTRATO) ===== */
+  /* ===== RECIBO ===== */
   .recibo .linha {
     display: flex; justify-content: space-between;
     padding: 10px 0; font-size: 14px;
@@ -170,7 +170,7 @@
     margin: 16px 0 4px 0; text-transform: uppercase; letter-spacing: 0.5px;
   }
 
-  /* ===== LISTAS (DIAS E LANÇAMENTOS) ===== */
+  /* ===== LISTAS ===== */
   .dia {
     display: flex; justify-content: space-between;
     align-items: center; padding: 12px 0;
@@ -226,12 +226,12 @@
   details[open] summary { border-bottom: 1px solid var(--borda); }
   .details-content { padding: 16px; }
 
-  /* ===== BOTTOM NAVIGATION BAR ===== */
+  /* ===== BOTTOM NAVIGATION ===== */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--card); border-top: 1px solid var(--borda);
     display: flex; justify-content: space-around;
-    padding: 8px 4px 20px 4px; /* safe area para iPhones */
+    padding: 8px 4px 20px 4px;
     z-index: 1000;
     box-shadow: 0 -4px 6px -1px rgba(0,0,0,.05);
   }
@@ -267,13 +267,9 @@
   #modalDia .info-linha span:first-child { color: var(--texto-suave); }
   #modalDia .info-linha span:last-child { font-weight: 600; text-align: right; }
 
-  /* ===== PREVIEW HORAS ===== */
   .preview { background: var(--input-bg); border-radius: 12px; padding: 12px; font-size: 13px; margin-top: 12px; color: var(--texto-suave); }
   .preview b { color: var(--texto); }
-
-  /* ===== CONFIG / FORMULÁRIOS DIVERSOS ===== */
   .info-escalao { font-size: 12px; color: var(--texto-fraco); text-align: center; font-style: italic; margin-top: 12px; }
-  
 </style>
 </head>
 <body>
@@ -305,6 +301,27 @@
 
     <label style="margin-top:16px;">Dia de fecho das horas extra</label>
     <input type="number" id="bv_diaFecho" step="1" min="1" max="31" value="31">
+  </div>
+
+  <!-- NOVO BLOCO SUBSÍDIO DE TURNO -->
+  <div class="card">
+    <h2>Subsídio de Turno</h2>
+    <p style="font-size:12px; color:var(--texto-fraco); margin:0 0 12px 0;">Se recebes subsídio por trabalhar por turnos, ativa aqui.</p>
+    
+    <label>Tipo de Subsídio</label>
+    <select id="bv_tipoSubsTurno" onchange="bv_mostrarSubsTurno()">
+      <option value="nenhum">Não recebo subsídio de turno</option>
+      <option value="valor">Valor fixo mensal (€)</option>
+      <option value="percentagem">Percentagem do ordenado base (%)</option>
+    </select>
+
+    <div id="bv_divSubsTurno" class="hide">
+      <label>Valor do Subsídio</label>
+      <input type="number" id="bv_subsTurnoValor" step="0.01" placeholder="Ex: 100" oninput="bv_mostrarSubsTurno()">
+      <div class="preview" style="margin-top:12px; padding:8px;">
+        Valor a receber: <b id="bv_subsTurnoCalculado">0,00 €</b>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -538,6 +555,25 @@
       <input type="number" id="diaFecho" step="1" min="1" max="31">
     </div>
 
+    <!-- NOVO BLOCO CONFIG SUBSÍDIO TURNO -->
+    <div class="card">
+      <h2>Subsídio de Turno</h2>
+      <label>Tipo</label>
+      <select id="tipoSubsTurno" onchange="conf_mostrarSubsTurno()">
+        <option value="nenhum">Não recebo subsídio de turno</option>
+        <option value="valor">Valor fixo mensal (€)</option>
+        <option value="percentagem">Percentagem do ordenado base (%)</option>
+      </select>
+
+      <div id="divSubsTurno" class="hide">
+        <label>Valor</label>
+        <input type="number" id="subsTurnoValor" step="0.01" oninput="conf_mostrarSubsTurno()">
+        <div class="preview" style="margin-top:12px; padding:8px;">
+          Valor a receber: <b id="subsTurnoCalculado">0,00 €</b>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
       <h2>Feriado Municipal</h2>
       <div class="row">
@@ -681,7 +717,13 @@ function segundaDaSemana(data) {
 
 function carregarDadosLocais() {
   conf = JSON.parse(localStorage.getItem(LS.conf) || '{}');
-  conf = Object.assign({ ordenadoBase: 0, valorHora: 0, valorAli: 0, horasSemanais: 40, valorHoraManual: false, diasUteis: 22, situacao: 'I', dependentes: 0, ssTaxa: 11, diaFecho: 31, feriadoMunicipalData: '', feriadoMunicipalNome: '' }, conf);
+  conf = Object.assign({ 
+    ordenadoBase: 0, valorHora: 0, valorAli: 0, horasSemanais: 40, 
+    valorHoraManual: false, diasUteis: 22, situacao: 'I', 
+    dependentes: 0, ssTaxa: 11, diaFecho: 31, 
+    feriadoMunicipalData: '', feriadoMunicipalNome: '',
+    tipoSubsTurno: 'nenhum', subsTurnoValor: 0
+  }, conf);
   valorHoraManual = conf.valorHoraManual || false;
   confTurnos = JSON.parse(localStorage.getItem(LS.turnos) || '{}');
   confTurnos = Object.assign({ nomeA: 'Dia', nomeB: 'Noite', inicioA: '08:00', fimA: '17:00', inicioB: '17:00', fimB: '01:00', dataRef: '', turnoInicial: 'A' }, confTurnos);
@@ -762,7 +804,7 @@ function classificarHoras(dataISO, horasTotal) {
 }
 
 /* ============================================================
-   INICIALIZAÇÃO E CONFIGURAÇÃO
+   INICIALIZAÇÃO E SUBSÍDIO TURNO (BOAS VINDAS)
    ============================================================ */
 function bv_mostrarValorHora() {
   const ob = +document.getElementById('bv_ordenadoBase').value || 0;
@@ -770,22 +812,26 @@ function bv_mostrarValorHora() {
   document.getElementById('bv_valorHoraTxt').textContent = calcularValorHora(ob, hs).toFixed(2).replace('.', ',') + ' €';
 }
 
-function conf_atualizarValorHora() {
-  if (valorHoraManual) return;
-  const ob = +document.getElementById('ordenadoBase').value || 0;
-  const hs = +document.getElementById('horasSemanais').value || 0;
-  document.getElementById('valorHoraConf').value = calcularValorHora(ob, hs).toFixed(2);
-}
+function bv_mostrarSubsTurno() {
+  const tipo = document.getElementById('bv_tipoSubsTurno').value;
+  const div = document.getElementById('bv_divSubsTurno');
+  const input = document.getElementById('bv_subsTurnoValor');
+  
+  if (tipo === 'nenhum') {
+    div.classList.add('hide');
+    return;
+  }
+  div.classList.remove('hide');
+  input.placeholder = tipo === 'valor' ? 'Ex: 100.00' : 'Ex: 10';
 
-function conf_marcarValorHoraManual() {
-  valorHoraManual = true;
-  conf.valorHoraManual = true;
-}
+  const ob = +document.getElementById('bv_ordenadoBase').value || 0;
+  const val = +input.value || 0;
+  let calculado = 0;
+  
+  if (tipo === 'valor') calculado = val;
+  else if (tipo === 'percentagem') calculado = ob * (val / 100);
 
-function mudarSituacao() {
-  conf.situacao = document.getElementById('situacao').value;
-  selecionarTabela(conf.situacao);
-  salvarConf(); renderTabelaInfo(); renderMes(); renderHist();
+  document.getElementById('bv_subsTurnoCalculado').textContent = calculado.toFixed(2).replace('.', ',') + ' €';
 }
 
 function comecarApp() {
@@ -797,12 +843,19 @@ function comecarApp() {
     const sit = document.getElementById('bv_situacao').value;
     const dep = +document.getElementById('bv_dependentes').value || 0;
     const ss = +document.getElementById('bv_ssTaxa').value;
+    
+    // Subsídio de Turno
+    const tipoST = document.getElementById('bv_tipoSubsTurno').value;
+    const valST = +document.getElementById('bv_subsTurnoValor').value || 0;
 
     if (!ob || !hs || isNaN(va) || !ss) return alert('Preenche todos os campos corretamente.');
 
     conf.ordenadoBase = ob; conf.horasSemanais = hs; conf.valorHora = +calcularValorHora(ob, hs).toFixed(2);
     conf.valorAli = va; conf.diaFecho = df; conf.situacao = sit; conf.dependentes = dep; conf.ssTaxa = ss;
     conf.valorHoraManual = false; valorHoraManual = false;
+    
+    conf.tipoSubsTurno = tipoST;
+    conf.subsTurnoValor = valST;
 
     if (!confTurnos.dataRef) { confTurnos.dataRef = formatarData(segundaDaSemana(new Date())); salvarConfTurnos(); }
 
@@ -853,33 +906,53 @@ function preencherCamposApp() {
   document.getElementById('feriadoMunicipalData').value = conf.feriadoMunicipalData;
   document.getElementById('feriadoMunicipalNome').value = conf.feriadoMunicipalNome;
 
+  // Subsídio Turno Config
+  document.getElementById('tipoSubsTurno').value = conf.tipoSubsTurno || 'nenhum';
+  document.getElementById('subsTurnoValor').value = conf.subsTurnoValor || 0;
+  conf_mostrarSubsTurno();
+
   document.getElementById('mesAtual').onchange = renderMes;
   document.getElementById('mesTurnos').onchange = renderTurnos;
 }
 
-function preencherCamposTurnos() {
-  document.getElementById('conf_nomeA').value = confTurnos.nomeA;
-  document.getElementById('conf_nomeB').value = confTurnos.nomeB;
-  document.getElementById('conf_inicioA').value = confTurnos.inicioA;
-  document.getElementById('conf_fimA').value = confTurnos.fimA;
-  document.getElementById('conf_inicioB').value = confTurnos.inicioB;
-  document.getElementById('conf_fimB').value = confTurnos.fimB;
-  document.getElementById('conf_dataRef').value = confTurnos.dataRef;
-  document.getElementById('conf_turnoInicial').value = confTurnos.turnoInicial;
-  document.getElementById('legendaA').textContent = confTurnos.nomeA;
-  document.getElementById('legendaB').textContent = confTurnos.nomeB;
+function conf_mostrarSubsTurno() {
+  const tipo = document.getElementById('tipoSubsTurno').value;
+  const div = document.getElementById('divSubsTurno');
+  const input = document.getElementById('subsTurnoValor');
+  
+  if (tipo === 'nenhum') {
+    div.classList.add('hide');
+    return;
+  }
+  div.classList.remove('hide');
+  input.placeholder = tipo === 'valor' ? 'Ex: 100.00' : 'Ex: 10';
+
+  const ob = +document.getElementById('ordenadoBase').value || 0;
+  const val = +input.value || 0;
+  let calculado = 0;
+  if (tipo === 'valor') calculado = val;
+  else if (tipo === 'percentagem') calculado = ob * (val / 100);
+
+  document.getElementById('subsTurnoCalculado').textContent = calculado.toFixed(2).replace('.', ',') + ' €';
 }
 
-function mudarTab(t) {
-  ['mes','turnos','ferias','hist','conf'].forEach(x => {
-    const v = document.getElementById('vista' + x.charAt(0).toUpperCase() + x.slice(1));
-    if(v) v.classList.toggle('hide', x !== t);
-    const b = document.getElementById('tab' + x.charAt(0).toUpperCase() + x.slice(1));
-    if(b) b.classList.toggle('active', x === t);
-  });
-  if (t === 'hist') renderHist();
-  if (t === 'turnos') { renderTurnos(); renderExcecoes(); }
-  if (t === 'ferias') renderFerias();
+function conf_atualizarValorHora() {
+  if (valorHoraManual) return;
+  const ob = +document.getElementById('ordenadoBase').value || 0;
+  const hs = +document.getElementById('horasSemanais').value || 0;
+  document.getElementById('valorHoraConf').value = calcularValorHora(ob, hs).toFixed(2);
+  conf_mostrarSubsTurno();
+}
+
+function conf_marcarValorHoraManual() {
+  valorHoraManual = true;
+  conf.valorHoraManual = true;
+}
+
+function mudarSituacao() {
+  conf.situacao = document.getElementById('situacao').value;
+  selecionarTabela(conf.situacao);
+  salvarConf(); renderTabelaInfo(); renderMes(); renderHist();
 }
 
 /* ============================================================
@@ -1042,9 +1115,18 @@ function renderMes() {
   const euros25 = t25 * vh * 1.25; const euros375 = t375 * vh * 1.375; const euros50 = t50 * vh * 1.50;
   const totalExtra = euros25 + euros375 + euros50;
   const alimentacao = trabalhados * va;
-  const totalAbonos = base + totalExtra + alimentacao;
-  const calcIRS = calcularIRS(base, totalExtra);
-  const ss = (base + totalExtra) * (conf.ssTaxa / 100);
+  
+  // SUBSÍDIO TURNO
+  let subsTurno = 0;
+  if (conf.tipoSubsTurno === 'valor') subsTurno = conf.subsTurnoValor || 0;
+  else if (conf.tipoSubsTurno === 'percentagem') subsTurno = base * ((conf.subsTurnoValor || 0) / 100);
+
+  const totalAbonos = base + totalExtra + alimentacao + subsTurno;
+  
+  // IRS e SS (O subsídio de turno entra na base tributável)
+  const baseTributavel = base + subsTurno;
+  const calcIRS = calcularIRS(baseTributavel, totalExtra);
+  const ss = (baseTributavel + totalExtra) * (conf.ssTaxa / 100);
   const totalDescontos = calcIRS.irs + ss;
   const liquido = totalAbonos - totalDescontos;
 
@@ -1053,10 +1135,11 @@ function renderMes() {
   document.getElementById('dashHoras').textContent = totalHoras.toFixed(1).replace('.', ',') + ' h';
   document.getElementById('dashDias').textContent = trabalhados;
 
-  // -- CONSTRUIR RECIBO (EXTRATO) --
+  // -- CONSTRUIR RECIBO --
   let reciboHTML = '';
   reciboHTML += `<div class="subsecao">Abonos</div>`;
   reciboHTML += `<div class="linha abono"><span>Vencimento Base</span><span>${base.toFixed(2)} €</span></div>`;
+  if (subsTurno > 0) reciboHTML += `<div class="linha abono"><span>Subsídio de Turno</span><span>${subsTurno.toFixed(2)} €</span></div>`;
   if (t25 > 0) reciboHTML += `<div class="linha abono"><span>Horas 25% (${t25}h)</span><span>${euros25.toFixed(2)} €</span></div>`;
   if (t375 > 0) reciboHTML += `<div class="linha abono"><span>Horas 37,5% (${t375}h)</span><span>${euros375.toFixed(2)} €</span></div>`;
   if (t50 > 0) reciboHTML += `<div class="linha abono"><span>Horas 50% (${t50}h)</span><span>${euros50.toFixed(2)} €</span></div>`;
@@ -1242,9 +1325,14 @@ function renderHist() {
     const euros = m.h25*vh*1.25 + m.h375*vh*1.375 + m.h50*vh*1.5;
     const uteis = diasUteisDoMes(mes);
     const trabalhados = uteis.filter(iso => !diasDesmarcados.includes(iso) && !ehDiaFerias(iso)).length;
-    const bruto = base + euros + (trabalhados * va);
-    const calcIRS = calcularIRS(base, euros);
-    const ss = (base + euros) * (conf.ssTaxa / 100);
+    
+    let subsTurno = 0;
+    if (conf.tipoSubsTurno === 'valor') subsTurno = conf.subsTurnoValor || 0;
+    else if (conf.tipoSubsTurno === 'percentagem') subsTurno = base * ((conf.subsTurnoValor || 0) / 100);
+
+    const bruto = base + subsTurno + euros + (trabalhados * va);
+    const calcIRS = calcularIRS(base + subsTurno, euros);
+    const ss = (base + subsTurno + euros) * (conf.ssTaxa / 100);
     const liq = bruto - (calcIRS.irs + ss);
     
     const dataM = new Date(mes + '-02T00:00:00');
@@ -1267,14 +1355,16 @@ function guardarConf() {
   conf.feriadoMunicipalData = document.getElementById('feriadoMunicipalData').value;
   conf.feriadoMunicipalNome = document.getElementById('feriadoMunicipalNome').value;
   conf.valorHoraManual = valorHoraManual;
+  
+  conf.tipoSubsTurno = document.getElementById('tipoSubsTurno').value;
+  conf.subsTurnoValor = +document.getElementById('subsTurnoValor').value || 0;
+
   salvarConf(); selecionarTabela(conf.situacao);
   alert('Configurações guardadas!');
   renderMes(); renderHist();
 }
 
-function renderTabelaInfo() {
-  // Mantido apenas para compatibilidade
-}
+function renderTabelaInfo() {}
 
 function fazerBackup() {
   const dados = { versao: 4, data: new Date().toISOString(), conf, confTurnos, excecoes, dias, diasDesmarcados, ferias };
