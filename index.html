@@ -118,7 +118,7 @@
     font-size: 11px; border-radius: 5px;
   }
 
-  /* ===== TABS (5 BOTÕES) ===== */
+  /* ===== TABS ===== */
   .tabs {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -139,7 +139,7 @@
   }
   .tabs button.active { background: var(--azul); color: #fff; }
 
-  .hide { display: none; }
+  .hide { display: none !important; }
   hr { border: none; border-top: 1px solid var(--borda); margin: 8px 0; }
 
   .recibo {
@@ -645,6 +645,12 @@
 
     <label>Subsídio de alimentação (€/dia) <span class="obrigatorio">*</span></label>
     <input type="number" id="bv_valorAli" step="0.01" placeholder="Ex: 6.00" inputmode="decimal">
+
+    <label>Dia de fecho das horas extra <span class="obrigatorio">*</span></label>
+    <input type="number" id="bv_diaFecho" step="1" min="1" max="31" value="31" inputmode="numeric">
+    <p style="font-size:11px;color:var(--texto-fraco);margin:2px 0 0">
+      Ex.: se o recibo fecha a 24, as horas do dia 25 em diante contam para o mês seguinte.
+    </p>
   </div>
 
   <div class="card">
@@ -1281,6 +1287,7 @@ function comecarApp() {
     const ordenadoBase = +document.getElementById('bv_ordenadoBase').value;
     const horasSemanais = +document.getElementById('bv_horasSemanais').value;
     const valorAli     = +document.getElementById('bv_valorAli').value;
+    const diaFecho     = +document.getElementById('bv_diaFecho').value || 31;
     const situacao     = document.getElementById('bv_situacao').value;
     const dependentes  = +document.getElementById('bv_dependentes').value || 0;
     const ssTaxa       = +document.getElementById('bv_ssTaxa').value;
@@ -1298,6 +1305,7 @@ function comecarApp() {
     conf.horasSemanais = horasSemanais;
     conf.valorHora    = +valorHora.toFixed(2);
     conf.valorAli     = valorAli;
+    conf.diaFecho     = diaFecho;
     conf.situacao     = situacao;
     conf.dependentes  = dependentes;
     conf.ssTaxa       = ssTaxa;
@@ -1305,7 +1313,6 @@ function comecarApp() {
     conf.feriadoMunicipalNome = feriadoNome;
     conf.valorHoraManual = false;
     valorHoraManual = false;
-    conf.diaFecho = 31; // default
 
     if (!confTurnos.dataRef) {
       const seg = segundaDaSemana(new Date());
@@ -1337,7 +1344,6 @@ window.onload = async () => {
   await carregarTabelasIRS();
   carregarDadosLocais();
   
-  // Garantir que o modal começa fechado
   document.getElementById('modalDia').classList.remove('ativo');
 
   const jaConfigurado = localStorage.getItem(LS.configurado) === 'true';
