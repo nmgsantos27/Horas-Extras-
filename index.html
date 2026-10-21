@@ -90,6 +90,7 @@
     border: 1px solid var(--borda);
   }
 
+  /* ===== DASHBOARD ===== */
   .dashboard {
     background: var(--azul); color: #fff;
     border-radius: 20px; padding: 24px 20px;
@@ -115,6 +116,29 @@
   .dashboard .stat .s-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
   .dashboard .stat .s-valor { font-size: 16px; font-weight: 700; margin-top: 2px; }
 
+  /* Botão de Privacidade */
+  .dashboard .btn-eye {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    padding: 6px;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    font-size: 18px;
+    z-index: 10;
+  }
+  .dashboard .btn-eye:active { transform: scale(0.9); }
+
+  /* ===== FORMULÁRIOS ===== */
   label { display: block; font-size: 13px; margin: 12px 0 6px 0; color: var(--texto-suave); font-weight: 500; }
   input, select {
     width: 100%; padding: 12px; font-size: 15px;
@@ -139,6 +163,7 @@
   .row { display: flex; gap: 10px; }
   .row > * { flex: 1; min-width: 0; }
 
+  /* ===== RECIBO ===== */
   .recibo .linha {
     display: flex; justify-content: space-between;
     padding: 10px 0; font-size: 14px;
@@ -166,6 +191,7 @@
     margin: 16px 0 4px 0; text-transform: uppercase; letter-spacing: 0.5px;
   }
 
+  /* ===== LISTAS ===== */
   .dia {
     display: flex; justify-content: space-between;
     align-items: center; padding: 12px 0;
@@ -316,7 +342,7 @@
     </div>
   </div>
 
-  <!-- FERIADO MUNICIPAL (NOVO) -->
+  <!-- FERIADO MUNICIPAL -->
   <div class="card">
     <h2>Feriado Municipal</h2>
     <p style="font-size:12px; color:var(--texto-fraco); margin:0 0 12px 0;">Pesquisa o teu concelho e a app preenche a data.</p>
@@ -367,6 +393,7 @@
 
   <div id="vistaMes">
     <div class="dashboard">
+      <button class="btn-eye" onclick="togglePrivacidade()" id="btnEye">👁️</button>
       <div class="label">Líquido a Receber</div>
       <div class="valor" id="dashLiquido">0,00 €</div>
       <div class="stats">
@@ -656,12 +683,12 @@
 
 <script>
 /* ============================================================
-   AUTO-LIMPEZA DO SERVICE WORKER ANTIGO
+   AUTO-LIMPEZA DO SERVICE WORKER
    ============================================================ */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(function(registrations) {
     for(let registration of registrations) {
-      registration.unregister(); // Desliga o SW antigo para forçar a atualização
+      registration.unregister();
     }
   });
 }
@@ -758,6 +785,7 @@ let TAXA_TRIBUTAVEL_HORAS_EXTRA = 0.50;
 let TABELA_ANO = 0;
 let TABELA_CARREGADA = false;
 let valorHoraManual = false;
+let ocultarValores = false;
 
 const FERIADOS_NACIONAIS = [
   '2026-01-01', '2026-04-03', '2026-04-05', '2026-04-25',
@@ -775,7 +803,7 @@ const TABELAS_FALLBACK = {
 const LS = {
   dias: 'bh_dias', conf: 'bh_conf', diasTrabalhados: 'bh_dias_trab',
   ferias: 'bh_ferias', turnos: 'bh_turnos', excecoes: 'bh_excecoes',
-  configurado: 'bh_configurado'
+  configurado: 'bh_configurado', ocultar: 'bh_ocultar_valores'
 };
 
 let conf = {};
@@ -786,6 +814,19 @@ let diasDesmarcados = [];
 let ferias = [];
 let dataEmEdicao = null;
 
+/* ============================================================
+   PRIVACIDADE
+   ============================================================ */
+function togglePrivacidade() {
+  ocultarValores = !ocultarValores;
+  localStorage.setItem(LS.ocultar, ocultarValores);
+  document.getElementById('btnEye').textContent = ocultarValores ? '🙈' : '👁️';
+  renderMes();
+}
+
+/* ============================================================
+   FUNÇÕES BASE
+   ============================================================ */
 function formatarData(d) {
   const a = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -819,6 +860,8 @@ function carregarDadosLocais() {
     tipoSubsTurno: 'nenhum', subsTurnoValor: 0
   }, conf);
   valorHoraManual = conf.valorHoraManual || false;
+  ocultarValores = localStorage.getItem(LS.ocultar) === 'true';
+  
   confTurnos = JSON.parse(localStorage.getItem(LS.turnos) || '{}');
   confTurnos = Object.assign({ nomeA: 'Dia', nomeB: 'Noite', inicioA: '08:00', fimA: '17:00', inicioB: '17:00', fimB: '01:00', dataRef: '', turnoInicial: 'A' }, confTurnos);
   excecoes = JSON.parse(localStorage.getItem(LS.excecoes) || '{}');
@@ -1002,6 +1045,13 @@ window.onload = async () => {
     selecionarTabela(conf.situacao);
     document.getElementById('appPrincipal').classList.remove('hide');
     document.getElementById('menuInferior').classList.remove('hide');
+    
+    if (ocultarValores) {
+      document.getElementById('btnEye').textContent = '🙈';
+    } else {
+      document.getElementById('btnEye').textContent = '👁️';
+    }
+
     preencherCamposApp(); preencherCamposTurnos(); renderTabelaInfo();
     atualizarPreview(); renderFerias(); renderMes(); renderHist();
   } else {
@@ -1248,14 +1298,12 @@ function renderMes() {
   const totalExtra = euros25 + euros375 + euros50;
   const alimentacao = trabalhados * va;
   
-  // SUBSÍDIO TURNO
   let subsTurno = 0;
   if (conf.tipoSubsTurno === 'valor') subsTurno = conf.subsTurnoValor || 0;
   else if (conf.tipoSubsTurno === 'percentagem') subsTurno = base * ((conf.subsTurnoValor || 0) / 100);
 
   const totalAbonos = base + totalExtra + alimentacao + subsTurno;
   
-  // IRS e SS (O subsídio de turno entra na base tributável)
   const baseTributavel = base + subsTurno;
   const calcIRS = calcularIRS(baseTributavel, totalExtra);
   const ss = (baseTributavel + totalExtra) * (conf.ssTaxa / 100);
@@ -1263,8 +1311,13 @@ function renderMes() {
   const liquido = totalAbonos - totalDescontos;
 
   // -- ATUALIZAR DASHBOARD --
-  document.getElementById('dashLiquido').textContent = liquido.toFixed(2).replace('.', ',') + ' €';
-  document.getElementById('dashHoras').textContent = totalHoras.toFixed(1).replace('.', ',') + ' h';
+  if (ocultarValores) {
+    document.getElementById('dashLiquido').textContent = '*** €';
+    document.getElementById('dashHoras').textContent = '*** h';
+  } else {
+    document.getElementById('dashLiquido').textContent = liquido.toFixed(2).replace('.', ',') + ' €';
+    document.getElementById('dashHoras').textContent = totalHoras.toFixed(1).replace('.', ',') + ' h';
+  }
   document.getElementById('dashDias').textContent = trabalhados;
 
   // -- CONSTRUIR RECIBO --
@@ -1461,7 +1514,9 @@ function renderHist() {
     const dataM = new Date(mes + '-02T00:00:00');
     const nomeM = dataM.toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
 
-    html += `<div class="dia"><span class="info" style="text-transform:capitalize;">${nomeM} <small style="color:var(--texto-fraco); font-size:11px; display:block; font-weight:400; margin-top:2px;">${totalH}h extra</small></span><span style="font-weight:800; color:var(--azul); font-size:16px;">${liq.toFixed(2)} €</span></div>`;
+    let valorStr = ocultarValores ? '*** €' : liq.toFixed(2) + ' €';
+
+    html += `<div class="dia"><span class="info" style="text-transform:capitalize;">${nomeM} <small style="color:var(--texto-fraco); font-size:11px; display:block; font-weight:400; margin-top:2px;">${totalH}h extra</small></span><span style="font-weight:800; color:var(--azul); font-size:16px;">${valorStr}</span></div>`;
   });
   lista.innerHTML = html;
 }
