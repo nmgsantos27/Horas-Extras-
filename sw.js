@@ -1,5 +1,5 @@
 /* Service Worker — Banco de Horas */
-const CACHE = 'banco-horas-v8';
+const CACHE = 'banco-horas-v9';
 const FICHEIROS = [
   './',
   './index.html',
