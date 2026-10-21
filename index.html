@@ -116,7 +116,6 @@
   .dashboard .stat .s-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
   .dashboard .stat .s-valor { font-size: 16px; font-weight: 700; margin-top: 2px; }
 
-  /* Botão de Privacidade */
   .dashboard .btn-eye {
     position: absolute;
     top: 20px;
@@ -342,7 +341,6 @@
     </div>
   </div>
 
-  <!-- FERIADO MUNICIPAL -->
   <div class="card">
     <h2>Feriado Municipal</h2>
     <p style="font-size:12px; color:var(--texto-fraco); margin:0 0 12px 0;">Pesquisa o teu concelho e a app preenche a data.</p>
@@ -413,11 +411,14 @@
       <input type="month" id="mesAtual" style="width:auto; padding:6px; font-size:14px; border:none; background:var(--input-bg);">
     </div>
 
-    <div class="card">
-      <h2>Extrato</h2>
-      <div class="recibo" id="recibo"></div>
-      <div class="info-escalao" id="infoEscalao"></div>
-    </div>
+    <!-- EXTRATO (Agora num acordeão) -->
+    <details id="detalhesExtrato">
+      <summary>Extrato de Vencimento</summary>
+      <div class="details-content">
+        <div class="recibo" id="recibo"></div>
+        <div class="info-escalao" id="infoEscalao"></div>
+      </div>
+    </details>
 
     <div class="card">
       <h2>Lançar Horas Extra</h2>
@@ -561,7 +562,6 @@
     </div>
   </div>
 
-  <!-- ===== SEPARADOR: CONFIGURAÇÕES ===== -->
   <div id="vistaConf" class="hide">
     <div class="card">
       <h2>Dados Base</h2>
@@ -653,7 +653,6 @@
 
 </div>
 
-<!-- MENU INFERIOR (BOTTOM NAV) -->
 <div class="bottom-nav hide" id="menuInferior">
   <button id="tabMes" class="active" onclick="mudarTab('mes')">
     <span class="icon">📊</span> Mês
@@ -672,7 +671,6 @@
   </button>
 </div>
 
-<!-- MODAL DE DETALHES DO DIA -->
 <div id="modalDia">
   <div class="caixa">
     <h3 id="modalTitulo">Detalhes</h3>
@@ -821,6 +819,12 @@ function togglePrivacidade() {
   ocultarValores = !ocultarValores;
   localStorage.setItem(LS.ocultar, ocultarValores);
   document.getElementById('btnEye').textContent = ocultarValores ? '🙈' : '👁️';
+  
+  const elExtrato = document.getElementById('detalhesExtrato');
+  if (ocultarValores) {
+    elExtrato.removeAttribute('open');
+  }
+  
   renderMes();
 }
 
@@ -1048,6 +1052,7 @@ window.onload = async () => {
     
     if (ocultarValores) {
       document.getElementById('btnEye').textContent = '🙈';
+      document.getElementById('detalhesExtrato').removeAttribute('open');
     } else {
       document.getElementById('btnEye').textContent = '👁️';
     }
