@@ -1198,8 +1198,10 @@ function renderMes() {
   const totalExtra = euros25 + euros375 + euros50;
   
   const faltasJustificadas = contarFaltasNoMes(mes);
-  const descontoFaltasBase = (base / 30) * faltasJustificadas;
-  const baseEfetiva = base - descontoFaltasBase;
+  // Cálculo correto do vencimento: (Base ÷ 30) × (30 - Faltas)
+  const valorDia = base / 30;
+  const baseEfetiva = valorDia * (30 - faltasJustificadas);
+  const descontoFaltasBase = base - baseEfetiva;
   
   const alimentacao = trabalhados * va;
   
@@ -1228,7 +1230,7 @@ function renderMes() {
   // -- CONSTRUIR RECIBO --
   let reciboHTML = '';
   reciboHTML += `<div class="subsecao">Abonos</div>`;
-  reciboHTML += `<div class="linha abono"><span>Vencimento Base</span><span>${base.toFixed(2)} €</span></div>`;
+  reciboHTML += `<div class="linha abono"><span>Vencimento Base (30d)</span><span>${base.toFixed(2)} €</span></div>`;
   if (faltasJustificadas > 0) {
     reciboHTML += `<div class="linha desconto"><span>Faltas (${faltasJustificadas}d)</span><span>-${descontoFaltasBase.toFixed(2)} €</span></div>`;
   }
@@ -1468,8 +1470,8 @@ function renderHist() {
     const euros = m.h25*vh*1.25 + m.h375*vh*1.375 + m.h50*vh*1.5;
     
     const faltasJustificadas = contarFaltasNoMes(mes);
-    const descontoFaltasBase = (base / 30) * faltasJustificadas;
-    const baseEfetiva = base - descontoFaltasBase;
+    const valorDia = base / 30;
+    const baseEfetiva = valorDia * (30 - faltasJustificadas);
 
     const uteis = diasUteisDoMes(mes);
     const trabalhados = uteis.filter(iso => !diasDesmarcados.includes(iso) && !ehDiaFerias(iso) && !ehDiaFalta(iso)).length;
