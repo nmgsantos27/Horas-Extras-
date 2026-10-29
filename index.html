@@ -1125,6 +1125,11 @@ function calcularIRS(baseTributavel, totalExtra) {
   return { irs: r.irsBase + irsExtra, irsBase: r.irsBase, irsExtra, taxaEfetivaBase: r.taxaEfetiva, taxaExtra, escalao: r.escalao };
 }
 
+function contarFaltasNoMes(mes) {
+  const uteis = diasUteisDoMes(mes);
+  return uteis.filter(iso => ehDiaFalta(iso)).length;
+}
+
 function renderMes() {
   const mes = document.getElementById('mesAtual').value; if (!mes) return;
   const vh = conf.valorHora; const va = conf.valorAli;
@@ -1192,12 +1197,7 @@ function renderMes() {
   const euros25 = t25 * vh * 1.25; const euros375 = t375 * vh * 1.375; const euros50 = t50 * vh * 1.50;
   const totalExtra = euros25 + euros375 + euros50;
   
-  // Dias de falta neste mês (apenas os dias úteis)
-  let faltasJustificadas = 0;
-  faltas.forEach(f => {
-    if (f.de.startsWith(mes)) faltasJustificadas++;
-  });
-
+  const faltasJustificadas = contarFaltasNoMes(mes);
   const descontoFaltasBase = (base / 30) * faltasJustificadas;
   const baseEfetiva = base - descontoFaltasBase;
   
@@ -1467,10 +1467,8 @@ function renderHist() {
     const totalH = m.h25 + m.h375 + m.h50;
     const euros = m.h25*vh*1.25 + m.h375*vh*1.375 + m.h50*vh*1.5;
     
-    let faltasMes = 0;
-    faltas.forEach(f => { if (f.de.startsWith(mes)) faltasMes++; });
-
-    const descontoFaltasBase = (base / 30) * faltasMes;
+    const faltasJustificadas = contarFaltasNoMes(mes);
+    const descontoFaltasBase = (base / 30) * faltasJustificadas;
     const baseEfetiva = base - descontoFaltasBase;
 
     const uteis = diasUteisDoMes(mes);
