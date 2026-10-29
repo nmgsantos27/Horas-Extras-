@@ -288,7 +288,6 @@
 </head>
 <body>
 
-<!-- ================= ECRÃ DE BOAS VINDAS ================= -->
 <div id="ecraBoasVindas" class="hide" style="position:fixed; inset:0; background:var(--bg); z-index:3000; overflow-y:auto; padding:20px;">
   <h1 style="text-align:center; margin-top:20px;">📅 Banco de Horas</h1>
   <p style="text-align:center; color:var(--texto-suave); margin-bottom:24px;">Configura a tua app em 1 minuto.</p>
@@ -380,7 +379,6 @@
   <button class="verde" onclick="comecarApp()" style="padding:16px; font-size:16px;">Começar a usar a App</button>
 </div>
 
-<!-- ================= APP PRINCIPAL ================= -->
 <div id="appPrincipal" class="hide">
   
   <h1>Olá 👋</h1>
@@ -443,9 +441,9 @@
     </details>
 
     <details>
-      <summary>Dias Úteis (Faltas)</summary>
+      <summary>Dias Úteis (Faltas/Baixas)</summary>
       <div class="details-content">
-        <p style="font-size:12px; color:var(--texto-fraco); margin-bottom:12px;">Desmarca os dias em que faltaste. O subsídio de alimentação será descontado.</p>
+        <p style="font-size:12px; color:var(--texto-fraco); margin-bottom:12px;">Desmarca os dias em que faltaste. O ordenado base e o subsídio de alimentação serão ajustados.</p>
         <div id="listaDiasUteis"></div>
       </div>
     </details>
@@ -808,9 +806,6 @@ let diasDesmarcados = [];
 let ferias = [];
 let dataEmEdicao = null;
 
-/* ============================================================
-   PRIVACIDADE
-   ============================================================ */
 function togglePrivacidade() {
   ocultarValores = !ocultarValores;
   localStorage.setItem(LS.ocultar, ocultarValores);
@@ -824,9 +819,6 @@ function togglePrivacidade() {
   renderMes();
 }
 
-/* ============================================================
-   FUNÇÕES BASE
-   ============================================================ */
 function formatarData(d) {
   const a = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -1297,15 +1289,22 @@ function renderMes() {
   const base = conf.ordenadoBase;
   const euros25 = t25 * vh * 1.25; const euros375 = t375 * vh * 1.375; const euros50 = t50 * vh * 1.50;
   const totalExtra = euros25 + euros375 + euros50;
+  
+  // CALCULO DO SUBSÍDIO DE ALIMENTAÇÃO E DESCONTO DO ORDENADO BASE
+  const nDiasUteisMes = uteis.length;
+  const valorDiaBase = nDiasUteisMes > 0 ? (base / nDiasUteisMes) : 0;
+  const descontoFaltasBase = (nDiasUteisMes - trabalhados) * valorDiaBase;
+  const baseEfetiva = base - descontoFaltasBase;
+  
   const alimentacao = trabalhados * va;
   
   let subsTurno = 0;
   if (conf.tipoSubsTurno === 'valor') subsTurno = conf.subsTurnoValor || 0;
-  else if (conf.tipoSubsTurno === 'percentagem') subsTurno = base * ((conf.subsTurnoValor || 0) / 100);
+  else if (conf.tipoSubsTurno === 'percentagem') subsTurno = baseEfetiva * ((conf.subsTurnoValor || 0) / 100);
 
-  const totalAbonos = base + totalExtra + alimentacao + subsTurno;
+  const totalAbonos = baseEfetiva + totalExtra + alimentacao + subsTurno;
   
-  const baseTributavel = base + subsTurno;
+  const baseTributavel = baseEfetiva + subsTurno;
   const calcIRS = calcularIRS(baseTributavel, totalExtra);
   const ss = (baseTributavel + totalExtra) * (conf.ssTaxa / 100);
   const totalDescontos = calcIRS.irs + ss;
@@ -1324,7 +1323,14 @@ function renderMes() {
   // -- CONSTRUIR RECIBO --
   let reciboHTML = '';
   reciboHTML += `<div class="subsecao">Abonos</div>`;
-  reciboHTML += `<div class="linha abono"><span>Vencimento Base</span><span>${base.toFixed(2)} €</span></div>`;
+  if (descontoFaltasBase > 0) {
+    reciboHTML += `<div class="linha abono"><span>Vencimento Base (${nDiasUteisMes}d)</span><span>${base.toFixed(2)} €</span></div>`;
+    reciboHTML += `<div class="linha desconto"><span>Faltas/Baixas (${nDiasUteisMes - trabalhados}d)</span><span>-${descontoFaltasBase.toFixed(2)} €</span></div>`;
+    reciboHTML += `<div class="linha total" style="font-size:14px; padding-top:4px; margin-top:4px;"><span>Base Efetiva</span><span>${baseEfetiva.toFixed(2)} €</span></div>`;
+  } else {
+    reciboHTML += `<div class="linha abono"><span>Vencimento Base</span><span>${base.toFixed(2)} €</span></div>`;
+  }
+
   if (subsTurno > 0) reciboHTML += `<div class="linha abono"><span>Subsídio de Turno</span><span>${subsTurno.toFixed(2)} €</span></div>`;
   if (t25 > 0) reciboHTML += `<div class="linha abono"><span>Horas 25% (${t25}h)</span><span>${euros25.toFixed(2)} €</span></div>`;
   if (t375 > 0) reciboHTML += `<div class="linha abono"><span>Horas 37,5% (${t375}h)</span><span>${euros375.toFixed(2)} €</span></div>`;
@@ -1360,7 +1366,6 @@ function renderFerias() {
   const lista = document.getElementById('listaFerias');
   if (!ferias.length) { lista.innerHTML = '<p style="text-align:center; color:var(--texto-fraco); font-size:13px;">Sem férias.</p>'; return; }
   
-  // Agrupar por ano
   const grupos = {};
   ferias.forEach(f => {
     const ano = f.de.split('-')[0];
@@ -1520,13 +1525,17 @@ function renderHist() {
     const uteis = diasUteisDoMes(mes);
     const trabalhados = uteis.filter(iso => !diasDesmarcados.includes(iso) && !ehDiaFerias(iso)).length;
     
+    const nDiasUteisMes = uteis.length;
+    const valorDiaBase = nDiasUteisMes > 0 ? (base / nDiasUteisMes) : 0;
+    const baseEfetiva = base - ((nDiasUteisMes - trabalhados) * valorDiaBase);
+    
     let subsTurno = 0;
     if (conf.tipoSubsTurno === 'valor') subsTurno = conf.subsTurnoValor || 0;
-    else if (conf.tipoSubsTurno === 'percentagem') subsTurno = base * ((conf.subsTurnoValor || 0) / 100);
+    else if (conf.tipoSubsTurno === 'percentagem') subsTurno = baseEfetiva * ((conf.subsTurnoValor || 0) / 100);
 
-    const bruto = base + subsTurno + euros + (trabalhados * va);
-    const calcIRS = calcularIRS(base + subsTurno, euros);
-    const ss = (base + subsTurno + euros) * (conf.ssTaxa / 100);
+    const bruto = baseEfetiva + subsTurno + euros + (trabalhados * va);
+    const calcIRS = calcularIRS(baseEfetiva + subsTurno, euros);
+    const ss = (baseEfetiva + subsTurno + euros) * (conf.ssTaxa / 100);
     const liq = bruto - (calcIRS.irs + ss);
     
     const dataM = new Date(mes + '-02T00:00:00');
